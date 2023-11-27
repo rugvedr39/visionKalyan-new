@@ -2,7 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { MongoClient } = require('mongodb');
+const { MongoClient,ObjectId } = require('mongodb');
 
 // MongoDB connection URL
 const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
@@ -232,7 +232,6 @@ router.post('/create-user', async (req, res) => {
                     _id: 0 // Exclude the MongoDB _id field
                 }
             }).toArray();
-    
             client.close();
             res.json({ success: true, users });
         } catch (error) {
@@ -256,5 +255,54 @@ router.post('/create-user', async (req, res) => {
             res.status(500).json({ success: false, error: 'Internal Server Error' });
         }
     })
+
+    router.get('/users/:username', async (req, res) => {
+      const username = req.params.username;
+      const client = await MongoClient.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+      try {
+          await client.connect();
+          const db = client.db(dbName);
+  
+          const user = await  db.collection('users').findOne({username: username});
+  
+          client.close();
+          res.json({ success: true, user });
+      } catch (error) {
+          console.error(error);
+          res.status(500).json({ success: false, error: 'Internal Server Error' });
+      }
+    });
+
+
+
+    // Update user by ID
+router.put('/update/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const updateFields = req.body; // Assuming you send the fields to update in the request body
+
+    // Connect to MongoDB
+    const client = await MongoClient.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+    const db = client.db(dbName);
+
+    // Update the user by ID
+    const result = await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) }, 
+      { $set: updateFields }
+    );
+
+    client.close();
+
+    if (result.modifiedCount > 0) {
+      res.json({ success: true, message: 'User updated successfully' });
+    } else {
+      res.status(404).json({ success: false, message: 'User not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+});
+
 
     module.exports = router;

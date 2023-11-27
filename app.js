@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const paymentRoutes = require('./paymentRoutes');
 const usersRoutes = require('./UserRoutes');
 const loginRoutes = require('./loginRoutes');
+const payoutRoutes = require('./payoutRoutes');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -96,6 +97,7 @@ app.get('/all-epins', async (req, res) => {
 app.use('/users',usersRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/users', loginRoutes);
+app.use('/payouts', payoutRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
