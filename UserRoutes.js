@@ -66,6 +66,7 @@ router.post('/create-user', async (req, res) => {
               userId: 'VK24496086',
               pins: { $in: [pin] } // Use $in to check if pin exists in the array
             });
+              await deleteUsedPin(db, 'VK24496086' || 'admin', pin);
           }
           return existingEpin ? true : false;
         } catch (error) {
