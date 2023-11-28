@@ -59,6 +59,12 @@ router.post('/create-user', async (req, res) => {
             userId: sponsorId,
             pins: { $in: [pin] } // Use $in to check if pin exists in the array
           });
+          if (!epinExists) {
+            existingEpin = await db.collection('epins').findOne({
+              userId: 'admin',
+              pins: { $in: [pin] } // Use $in to check if pin exists in the array
+            });
+          }
           return existingEpin ? true : false;
         } catch (error) {
           console.error(error);
