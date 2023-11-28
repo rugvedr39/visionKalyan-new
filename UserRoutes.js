@@ -55,13 +55,13 @@ router.post('/create-user', async (req, res) => {
       // Function to validate if the E-pin exists for the specified sponsor ID
     async function validateEpin(db, sponsorId, pin) {
         try {
-          const existingEpin = await db.collection('epins').findOne({
+          let existingEpin = await db.collection('epins').findOne({
             userId: sponsorId,
             pins: { $in: [pin] } // Use $in to check if pin exists in the array
           });
-          if (!epinExists) {
+          if (existingEpin=null) {
             existingEpin = await db.collection('epins').findOne({
-              userId: 'admin',
+              userId: 'VK24496086',
               pins: { $in: [pin] } // Use $in to check if pin exists in the array
             });
           }
