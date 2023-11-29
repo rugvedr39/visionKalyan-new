@@ -8,7 +8,7 @@ const dbName = 'VisionKalyan_New';
 // Middleware to handle database connection
 const withDb = async (req, res, next) => {
   try {
-    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+    const client = new MongoClient(url);
     await client.connect();
     req.db = client.db(dbName);
     next();
@@ -111,15 +111,16 @@ router.post('/procced/paid', withDb, async (req, res) => {
     );
 
     // Insert into RecentPayments collection
-    await payoutpaymentscollections.insertOne(req.body);
-
+    
     // Check if data array is empty and delete the document
     const result1 = await PaymentProccedDetailsCollection.findOne({ _id: new ObjectId(req.body._id) });
     if (result1.data.length === 0) {
       await PaymentProccedDetailsCollection.findOneAndDelete({ _id: new ObjectId(req.body._id) });
     }
+    delete req.body._id;
+    await payoutpaymentscollections.insertOne(req.body);
 
-    res.status(200).json({ data: result });
+    res.status(200).json({ data: 'Successful' });
   } catch (error) {
     console.error('Error updating payment details:', error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
@@ -135,6 +136,19 @@ router.get('/payment/done-get', withDb, async (req, res) => {
     const result = await payoutpaymentscollections.find().toArray();
     
     res.status(200).json({ data: result });
+  } catch (error) {
+    console.error('Error fetching recent payments:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+});
+
+router.get('/payment/payout/:username', withDb, async (req, res) => {
+  const username = req.params.username;
+  try {
+    const { db } = req;
+    const payoutpaymentscollections = db.collection('RecentPayments');
+    const result = await payoutpaymentscollections.find({ username }).toArray();
+    res.status(200).json({success: true, data: result });
   } catch (error) {
     console.error('Error fetching recent payments:', error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });

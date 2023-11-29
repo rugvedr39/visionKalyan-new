@@ -11,7 +11,7 @@ const dbName = 'VisionKalyan_New';
 
 
 router.post('/create-user', async (req, res) => {
-    const client = await MongoClient.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+    const client = await MongoClient.connect(mongoURL);
     let db = client.db(dbName);
         try {
           const {
@@ -59,14 +59,11 @@ router.post('/create-user', async (req, res) => {
             userId: sponsorId,
             pins: { $in: [pin] } // Use $in to check if pin exists in the array
           });
-            console.log(existingEpin)
-          if (existingEpin==null) {
-              console.log("inside")
+          if (existingEpin=null) {
             existingEpin = await db.collection('epins').findOne({
               userId: 'VK24496086',
               pins: { $in: [pin] } // Use $in to check if pin exists in the array
             });
-              await deleteUsedPin(db, 'VK24496086' || 'admin', pin);
           }
           return existingEpin ? true : false;
         } catch (error) {
@@ -224,7 +221,7 @@ router.post('/create-user', async (req, res) => {
 
 
       router.get('/get-all-users', async (req, res) => {
-        const client = await MongoClient.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+        const client = await MongoClient.connect(mongoURL);
         try {
             await client.connect();
             const db = client.db(dbName);
@@ -250,7 +247,7 @@ router.post('/create-user', async (req, res) => {
     });
 
     router.get('/countUsers', async (req, res) => {
-        const client = await MongoClient.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+        const client = await MongoClient.connect(mongoURL);
         try {
             await client.connect();
             const db = client.db(dbName);
@@ -267,7 +264,7 @@ router.post('/create-user', async (req, res) => {
 
     router.get('/users/:username', async (req, res) => {
       const username = req.params.username;
-      const client = await MongoClient.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+      const client = await MongoClient.connect(mongoURL);
       try {
           await client.connect();
           const db = client.db(dbName);
@@ -291,7 +288,7 @@ router.put('/update/:userId', async (req, res) => {
     const updateFields = req.body; // Assuming you send the fields to update in the request body
 
     // Connect to MongoDB
-    const client = await MongoClient.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+    const client = await MongoClient.connect(mongoURL);
     const db = client.db(dbName);
 
     // Update the user by ID

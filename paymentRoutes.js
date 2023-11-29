@@ -14,7 +14,7 @@ router.post('/add', async (req, res) => {
     const { username, date } = req.body;
 
     // Connect to MongoDB
-    const client = await MongoClient.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+    const client = await MongoClient.connect(mongoURL);
     const db = client.db(dbName);
 
     // Check if the username is available
@@ -129,7 +129,7 @@ router.get('/payment/:username', async (req, res) => {
     try {
         const username = req.params.username;
       // Connect to MongoDB
-      const client = await MongoClient.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+      const client = await MongoClient.connect(mongoURL);
       const db = client.db(dbName);
       // Add payment to the 'payments' collection
       const result = await db.collection('payments').find({ username }).toArray();
@@ -145,7 +145,7 @@ router.get('/income/:username', async (req, res) => {
     try {
         const username = req.params.username;
       // Connect to MongoDB
-      const client = await MongoClient.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+      const client = await MongoClient.connect(mongoURL);
       const db = client.db(dbName);
       // Add payment to the 'payments' collection
       const result = await db.collection('indirectIncomeCollection').find({ username }).toArray();

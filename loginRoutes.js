@@ -11,7 +11,7 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
   
     // Establish a connection to MongoDB
-    const client = new MongoClient(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+    const client = new MongoClient(mongoURL);
   
     try {
       await client.connect();
@@ -25,6 +25,15 @@ router.post('/login', async (req, res) => {
   
       // Compare the provided password with the password stored in the database
       if (password === user.password) {
+
+        const downlineWithNames = await Promise.all(user.downline.map(async (downlineItem) => {
+          const { userId, ...rest } = downlineItem;
+          const downlineUser = await db.collection('users').findOne({ _id: new Object(userId) });
+          console.log(downlineUser);
+          const name = downlineUser ? downlineUser.name : 'Unknown'; // Default to 'Unknown' if user not found
+          return { ...rest, name };
+        }));
+        user.downline = downlineWithNames;
         res.json({ success: true, data:user });
       } else {
         res.status(401).json({ success: false, message: 'Invalid password' });
