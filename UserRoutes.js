@@ -53,6 +53,7 @@ router.post('/create-user', async (req, res) => {
             // If a sponsorId is provided, validate if it exists
         const epinExists = await validateEpin(db, sponsorId || 'admin',pin); 
       // Function to validate if the E-pin exists for the specified sponsor ID
+    const deletepin = sponsorId
     async function validateEpin(db, sponsorId, pin) {
         try {
           let existingEpin = await db.collection('epins').findOne({
@@ -60,6 +61,7 @@ router.post('/create-user', async (req, res) => {
             pins: { $in: [pin] } // Use $in to check if pin exists in the array
           });
           if (existingEpin==null) {
+            deletepin = 'VK24496086'
             existingEpin = await db.collection('epins').findOne({
               userId: 'VK24496086',
               pins: { $in: [pin] } // Use $in to check if pin exists in the array
@@ -75,7 +77,7 @@ router.post('/create-user', async (req, res) => {
         if (!epinExists) {
           return res.status(404).json({ success: false, message: 'E-pin not found for the sponsor or admin' });
         }
-        await deleteUsedPin(db, sponsorId || 'admin', pin);
+        await deleteUsedPin(db, deletepin || 'admin', pin);
           // Create the new user
           const createdAt = new Date().toISOString();
           const newUser = {

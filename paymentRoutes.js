@@ -48,6 +48,9 @@ router.post('/add', async (req, res) => {
       whos: req.body.username,
       status:'unpaid'
     };
+    if (totalPayments.length==11) {
+      levelPaymentData.amount=500*5
+    }
     await indirectIncomeCollection.insertOne(levelPaymentData)
     sponserID = await UsersCollection.findOne({username: sponserID.sponsorId})
     totalPayments = await indirectIncomeCollection.find({username:sponserID.sponsorId,level:2,whos:req.body.username}).toArray()
