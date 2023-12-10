@@ -154,4 +154,28 @@ router.get('/payment/payout/:username', withDb, async (req, res) => {
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
+
+async function connectToMongoDBWithRetry() {
+  const maxRetries = 100; // Adjust the number of retries as needed
+  let currentRetry = 0;
+
+  while (currentRetry < maxRetries) {
+    try {
+      // Connect to MongoDB
+      const client = await MongoClient.connect(mongoURL);
+      return client;
+    } catch (error) {
+      console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
+      currentRetry++;
+
+      // Wait for a certain period before the next retry (e.g., 5 seconds)
+      const retryDelay = 1000;
+      console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
+  }
+
+  console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
+  return null;
+}
 module.exports = router;

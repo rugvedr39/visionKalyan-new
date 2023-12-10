@@ -11,103 +11,103 @@ const dbName = 'VisionKalyan_New';
 
 
 router.post('/create-user', async (req, res) => {
-    const client = await MongoClient.connect(mongoURL);
-    let db = client.db(dbName);
-        try {
-          const {
-            name,
-            password,
-            panNumber,
-            sponsorId,
-            phoneNumber,
-            bankDetails,
-            downline,
-            email,
-            pin
-          } = req.body;
+  const client = await connectToMongoDBWithRetry();
+  try {
+      const {
+          name,
+          password,
+          panNumber,
+          sponsorId,
+          phoneNumber,
+          bankDetails,
+          downline,
+          email,
+          pin
+      } = req.body;
 
-          // Validate the username format (starting with VK and followed by 8 digits)
-          let username;
-          let existingUser;
+      // Validate the username format (starting with VK and followed by 8 digits)
+      let username;
+      let existingUser;
 
-          // Ensure the database connection is established
-          await client.connect();
-          const db = client.db(dbName);
-          do {
-            username = generateUsername();
-            existingUser = await db.collection('users').findOne({ username });
-          } while (existingUser);
-      
-          function generateUsername() {
-            const randomCode = Math.floor(10000000 + Math.random() * 90000000); // Generate an 8-digit random code
-            return `VK${randomCode}`;
-          }
-      
-          // Validate if the sponsorId exists
-          if (sponsorId) {
-              const sponsorExists = await validateSponsorId(db, sponsorId);
-              if (!sponsorExists) {
-                  return res.status(404).json({ success: false, message: 'Sponsor ID not found' });
-                }
-            }
-            // If a sponsorId is provided, validate if it exists
-        const epinExists = await validateEpin(db, sponsorId || 'admin',pin); 
-      // Function to validate if the E-pin exists for the specified sponsor ID
-    const deletepin = sponsorId
-    async function validateEpin(db, sponsorId, pin) {
-        try {
-          let existingEpin = await db.collection('epins').findOne({
-            userId: sponsorId,
-            pins: { $in: [pin] } // Use $in to check if pin exists in the array
-          });
-          if (existingEpin==null) {
-            deletepin = 'VK24496086'
-            existingEpin = await db.collection('epins').findOne({
-              userId: 'VK24496086',
-              pins: { $in: [pin] } // Use $in to check if pin exists in the array
-            });
-          }
-          return existingEpin ? true : false;
-        } catch (error) {
-          console.error(error);
-          throw error;
-        }
+      // Ensure the database connection is established
+      await client.connect();
+      const db = client.db(dbName);
+      do {
+          username = generateUsername();
+          existingUser = await db.collection('users').findOne({ username });
+      } while (existingUser);
+
+      function generateUsername() {
+          const randomCode = Math.floor(10000000 + Math.random() * 90000000); // Generate an 8-digit random code
+          return `VK${randomCode}`;
       }
-      
-        if (!epinExists) {
+
+      // Validate if the sponsorId exists
+      if (sponsorId) {
+          const sponsorExists = await validateSponsorId(db, sponsorId);
+          if (!sponsorExists) {
+              return res.status(404).json({ success: false, message: 'Sponsor ID not found' });
+          }
+      }
+      // If a sponsorId is provided, validate if it exists
+      let epinExists = await validateEpin(db, sponsorId || 'admin', pin);
+      // Function to validate if the E-pin exists for the specified sponsor ID
+      let deletepin = sponsorId; // Use let instead of const
+      async function validateEpin(db, sponsorId, pin) {
+          try {
+              let existingEpin = await db.collection('epins').findOne({
+                  userId: sponsorId,
+                  pins: { $in: [pin] } // Use $in to check if pin exists in the array
+              });
+              if (existingEpin == null) {
+                  deletepin = 'VK24496086';
+                  existingEpin = await db.collection('epins').findOne({
+                      userId: 'VK24496086',
+                      pins: { $in: [pin] } // Use $in to check if pin exists in the array
+                  });
+              }
+              return existingEpin ? true : false;
+          } catch (error) {
+              console.error(error);
+              throw error;
+          }
+      }
+
+      if (!epinExists) {
           return res.status(404).json({ success: false, message: 'E-pin not found for the sponsor or admin' });
-        }
-        await deleteUsedPin(db, deletepin || 'admin', pin);
-          // Create the new user
-          const createdAt = new Date().toISOString();
-          const newUser = {
-            username,
-            name,
-            password,
-            panNumber,
-            sponsorId,
-            createdAt,
-            phoneNumber,
-            bankDetails,
-            downline,
-            email,
-          };
-          // Insert the new user into the collection
-          const result = await db.collection('users').insertOne(newUser);
-          await updateDownlineLevels(db, sponsorId, username, 1, result.insertedId);
-          const now = new Date();
-          const options= Intl.DateTimeFormatOptions = {
-             timeZone: 'Asia/Kolkata',
-             hour12: false,
-           };
-          await db.collection('payments').insertOne({ username:username, date:now.toLocaleString('en-US', options) });
-          client.close();
-          res.json({ success: true, user: newUser });
-        } catch (error) {
-          console.error(error);
-          res.status(500).json({ success: false, error: 'Internal Server Error' });
-        }
-      });
+      }
+      await deleteUsedPin(db, deletepin || 'admin', pin);
+      // Create the new user
+      const createdAt = new Date().toISOString();
+      const newUser = {
+          username,
+          name,
+          password,
+          panNumber,
+          sponsorId,
+          createdAt,
+          phoneNumber,
+          bankDetails,
+          downline,
+          email,
+      };
+      // Insert the new user into the collection
+      const result = await db.collection('users').insertOne(newUser);
+      await updateDownlineLevels(db, sponsorId, username, 1, result.insertedId);
+      const now = new Date();
+      const options = Intl.DateTimeFormatOptions = {
+          timeZone: 'Asia/Kolkata',
+          hour12: false,
+      };
+      await db.collection('payments').insertOne({ username: username, date: now.toLocaleString('en-US', options) });
+      client.close();
+      res.json({ success: true, user: newUser });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+});
+
       
     // Function to validate if the sponsor ID exists
     async function validateSponsorId(db, sponsorId) {
@@ -223,7 +223,7 @@ router.post('/create-user', async (req, res) => {
 
 
       router.get('/get-all-users', async (req, res) => {
-        const client = await MongoClient.connect(mongoURL);
+        const client = await connectToMongoDBWithRetry();
         try {
             await client.connect();
             const db = client.db(dbName);
@@ -249,7 +249,7 @@ router.post('/create-user', async (req, res) => {
     });
 
     router.get('/countUsers', async (req, res) => {
-        const client = await MongoClient.connect(mongoURL);
+        const client = await connectToMongoDBWithRetry();
         try {
             await client.connect();
             const db = client.db(dbName);
@@ -266,7 +266,7 @@ router.post('/create-user', async (req, res) => {
 
     router.get('/users/:username', async (req, res) => {
       const username = req.params.username;
-      const client = await MongoClient.connect(mongoURL);
+      const client = await connectToMongoDBWithRetry();
       try {
           await client.connect();
           const db = client.db(dbName);
@@ -290,7 +290,7 @@ router.put('/update/:userId', async (req, res) => {
     const updateFields = req.body; // Assuming you send the fields to update in the request body
 
     // Connect to MongoDB
-    const client = await MongoClient.connect(mongoURL);
+    const client =await connectToMongoDBWithRetry();
     const db = client.db(dbName);
 
     // Update the user by ID
@@ -312,5 +312,27 @@ router.put('/update/:userId', async (req, res) => {
   }
 });
 
+async function connectToMongoDBWithRetry() {
+  const maxRetries = 100; // Adjust the number of retries as needed
+  let currentRetry = 0;
 
+  while (currentRetry < maxRetries) {
+    try {
+      // Connect to MongoDB
+      const client = await MongoClient.connect(mongoURL);
+      return client;
+    } catch (error) {
+      console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
+      currentRetry++;
+
+      // Wait for a certain period before the next retry (e.g., 5 seconds)
+      const retryDelay = 1000;
+      console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
+  }
+
+  console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
+  return null;
+}
     module.exports = router;

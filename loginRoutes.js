@@ -11,7 +11,7 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
   
     // Establish a connection to MongoDB
-    const client = new MongoClient(mongoURL);
+    const client = await connectToMongoDBWithRetry();
   
     try {
       await client.connect();
@@ -48,5 +48,29 @@ router.post('/login', async (req, res) => {
   });
   
 
+
+  async function connectToMongoDBWithRetry() {
+    const maxRetries = 100; // Adjust the number of retries as needed
+    let currentRetry = 0;
+  
+    while (currentRetry < maxRetries) {
+      try {
+        // Connect to MongoDB
+        const client =await connectToMongoDBWithRetry();
+        return client;
+      } catch (error) {
+        console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
+        currentRetry++;
+  
+        // Wait for a certain period before the next retry (e.g., 5 seconds)
+        const retryDelay = 1000;
+        console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      }
+    }
+  
+    console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
+    return null;
+  }
 
 module.exports = router;

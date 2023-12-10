@@ -7,6 +7,7 @@ const paymentRoutes = require('./paymentRoutes');
 const usersRoutes = require('./UserRoutes');
 const loginRoutes = require('./loginRoutes');
 const payoutRoutes = require('./payoutRoutes');
+const projects = require('./land-project');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -26,91 +27,146 @@ const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwr
 const dbName = 'VisionKalyan_New';
 const client = new MongoClient(mongoURL);
 
-app.post('/generate-epins', async (req, res) => {
+
+async function connectToMongoDBWithRetry() {
+  const maxRetries = 100; // Adjust the number of retries as needed
+  let currentRetry = 0;
+
+  while (currentRetry < maxRetries) {
     try {
+      // Connect to MongoDB
+      const client = await MongoClient.connect(mongoURL);
+      return client;
+    } catch (error) {
+      console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
+      currentRetry++;
+
+      // Wait for a certain period before the next retry (e.g., 5 seconds)
+      const retryDelay = 1000;
+      console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
+  }
+
+  console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
+  return null;
+}
+
+app.post('/generate-epins', async (req, res) => {
+  let client // Declare the client variable outside the try block to make it accessible in the finally block
+  try {
       const { userId, count } = req.body;
-  
+
+      // Connect to MongoDB
+      client = await connectToMongoDBWithRetry();
+      const db = client.db(dbName);
+
       // Generate unique E-pins
       const generatedPins = [];
       while (generatedPins.length < count) {
-        const newPin = Math.random().toString(36).substring(2, 10).toUpperCase();
-        if (generatedPins.indexOf(newPin) === -1) {
-          generatedPins.push(newPin);
-        }
+          const newPin = Math.random().toString(36).substring(2, 10).toUpperCase();
+          if (generatedPins.indexOf(newPin) === -1) {
+              generatedPins.push(newPin);
+          }
       }
-  
-      // Connect to MongoDB
-      const client = await MongoClient.connect(mongoURL);
-      db = client.db(dbName);
-  
+
       // Update or insert E-pins without checking if the user already has an E-pin
       await db.collection('epins').updateOne(
-        { userId },
-        { $addToSet: { pins: { $each: generatedPins } } },
-        { upsert: true } // Create a new document if it doesn't exist
+          { userId },
+          { $addToSet: { pins: { $each: generatedPins } } },
+          { upsert: true } // Create a new document if it doesn't exist
       );
-        
-      client.close();
+
       res.json({ success: true, epins: generatedPins });
-    } catch (error) {
+  } catch (error) {
       console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-  });
+  } finally {
+      if (client) {
+          // Close the MongoDB connection in the finally block
+          client.close();
+      }
+  }
+});
+
 
 //
 app.get('/epins/:username', async (req, res) => {
-    try {
+  let client; // Declare the client variable outside the try block to make it accessible in the finally block
+  try {
       const username = req.params.username;
       // Connect to MongoDB
-      const client = await MongoClient.connect(mongoURL);
+      client = await connectToMongoDBWithRetry();
       const db = client.db(dbName);
+
       // Find E-pins for the given username
       const result = await db.collection('epins').findOne({ userId: username });
-      client.close();
       if (result) {
-        res.json({ success: true, epins: result.pins });
+          res.json({ success: true, epins: result.pins });
       } else {
-        res.status(404).json({ success: false, message: 'E-pins not found for the specified user' });
+          res.status(404).json({ success: false, message: 'E-pins not found for the specified user' });
       }
-    } catch (error) {
+  } catch (error) {
       console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-  });
+  } finally {
+      if (client) {
+          // Close the MongoDB connection in the finally block
+          client.close();
+      }
+  }
+});
+
 //
 app.get('/all-epins', async (req, res) => {
-    try {
+  let client; // Declare the client variable outside the try block to make it accessible in the finally block
+  try {
       // Connect to MongoDB
-      const client = await MongoClient.connect(mongoURL);
+      client = await connectToMongoDBWithRetry();
       const db = client.db(dbName);
+
       // Find all E-pins
       const results = await db.collection('epins').find().toArray();
-      client.close();
       res.json({ success: true, allEpins: results });
-    } catch (error) {
+  } catch (error) {
       console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-  });
-app.get('/unpaid', async (req, res) => {
+  } finally {
+      if (client) {
+          // Close the MongoDB connection in the finally block
+          client.close();
+      }
+  }
+});
+
+
+
+
+  app.get('/unpaid', async (req, res) => {
+    let client; // Declare the client variable outside the try block to make it accessible in the finally block
     try {
-      // Connect to MongoDB
-      const client = await MongoClient.connect(mongoURL);
-      const db = client.db(dbName);
-      // Find all E-pins
-      const results = await db.collection('indirectIncomeCollection').updateMany({}, { $set: { status: 'unpaid' } });
-      client.close();
-      res.json({ success: true, allEpins: results });
+        // Connect to MongoDB
+        client =await connectToMongoDBWithRetry();
+        const db = client.db(dbName);
+
+        // Find all E-pins
+        const results = await db.collection('indirectIncomeCollection').updateMany({}, { $set: { status: 'unpaid' } });
+        res.json({ success: true, allEpins: results });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, error: 'Internal Server Error' });
+        console.error(error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    } finally {
+        if (client) {
+            // Close the MongoDB connection in the finally block
+            client.close();
+        }
     }
-  });
+});
+
 
   app.get('/topusers', async (req, res) => {
     try {
-      const client = await MongoClient.connect(mongoURL);
+      const client =await connectToMongoDBWithRetry();
       const db = client.db(dbName);
   
       const excludedUsernames = ['VK24496086', 'VK53912943'];
@@ -140,9 +196,8 @@ app.get('/unpaid', async (req, res) => {
         { $sort: { level1Count: -1 } },
         { $limit: 5 },
       ]).toArray();
-  
-      client.close();
       res.json({ success: true, topUsers: topUsers });
+      client.close();
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -155,6 +210,7 @@ app.use('/users',usersRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/users', loginRoutes);
 app.use('/payouts', payoutRoutes);
+app.use('/projects', projects);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
