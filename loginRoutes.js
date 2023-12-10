@@ -29,7 +29,6 @@ router.post('/login', async (req, res) => {
         const downlineWithNames = await Promise.all(user.downline.map(async (downlineItem) => {
           const { userId, ...rest } = downlineItem;
           const downlineUser = await db.collection('users').findOne({ _id: new Object(userId) });
-          console.log(downlineUser);
           const name = downlineUser ? downlineUser.name : 'Unknown'; // Default to 'Unknown' if user not found
           return { ...rest, name };
         }));
@@ -56,7 +55,7 @@ router.post('/login', async (req, res) => {
     while (currentRetry < maxRetries) {
       try {
         // Connect to MongoDB
-        const client =await connectToMongoDBWithRetry();
+        const client = await MongoClient.connect(mongoURL);
         return client;
       } catch (error) {
         console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
