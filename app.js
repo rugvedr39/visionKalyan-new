@@ -8,6 +8,7 @@ const usersRoutes = require('./UserRoutes');
 const loginRoutes = require('./loginRoutes');
 const payoutRoutes = require('./payoutRoutes');
 const projects = require('./land-project');
+const emi = require('./emi');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -211,6 +212,7 @@ app.use('/payments', paymentRoutes);
 app.use('/users', loginRoutes);
 app.use('/payouts', payoutRoutes);
 app.use('/projects', projects);
+app.use('/emi', emi);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

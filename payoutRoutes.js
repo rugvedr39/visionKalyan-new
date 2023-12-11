@@ -5,6 +5,27 @@ const { MongoClient, ObjectId } = require('mongodb');
 const url = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'VisionKalyan_New';
 
+const sdk = require('api')('@waapi/v1.0#ehy7f2rlp03cxd0');
+sdk.auth('t0wD644lvq413rmF02Hx2TRpdOhBTmsd6Z1KjmIM');
+
+const createEMIMessage = (recipientName, accountID, pendingEMIAmount , bankAccount) => {
+  return `
+  Hi ${recipientName},
+
+I wanted to share the good news with you – your account (${bankAccount}) has been successfully credited with the amount of ${pendingEMIAmount} 
+
+Details:
+- User ID: ${accountID}
+- Credited Amount: ${pendingEMIAmount}
+
+If you have any questions or concerns regarding this credit, feel free to reach out to us. We're here to assist you.
+
+Thank you for your continued association with us.
+
+Best regards,
+Vision Kalyan`;
+};
+
 // Middleware to handle database connection
 const withDb = async (req, res, next) => {
   try {
@@ -93,9 +114,13 @@ router.post('/procced/paid', withDb, async (req, res) => {
   try {
     const { db } = req;
     const PaymentProccedDetailsCollection = db.collection('PaymentProccedDetails');
+    const UsersCollection = db.collection('users');
     const indirectIncomeCollection = db.collection('indirectIncomeCollection');
     const payoutpaymentscollections = db.collection('RecentPayments');
-    
+    let user = await UsersCollection.findOne({username:req.body.username});
+
+    // const createEMIMessage = (recipientName, accountID, pendingEMIAmount , bankAccount) => {
+    const message = createEMIMessage(user.name,user.username,req.body['Net Payable'],user.bankDetails.accountNumber)
     const objectIdsToUpdate = req.body.ids.map(id => new ObjectId(id));
 
     // Update IndirectIncomeCollection
@@ -119,6 +144,14 @@ router.post('/procced/paid', withDb, async (req, res) => {
     }
     delete req.body._id;
     await payoutpaymentscollections.insertOne(req.body);
+
+    const countryCode = '91';
+    const formattedNumber = user.phoneNumber.startsWith('+') ? `${countryCode}${user.phoneNumber.slice(1)}` : `${countryCode}${user.phoneNumber}`;
+    // const formattedNumber = '918600988002';
+    const response = await sdk.postInstancesIdClientActionSendMessage({
+        chatId: `${formattedNumber}@c.us`,
+        message,
+      }, { id: '3009' });
 
     res.status(200).json({ data: 'Successful' });
   } catch (error) {

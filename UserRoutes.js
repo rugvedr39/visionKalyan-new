@@ -9,7 +9,6 @@ const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwr
 const dbName = 'VisionKalyan_New';
 
 
-
 router.post('/create-user', async (req, res) => {
   const client = await connectToMongoDBWithRetry();
   try {
@@ -335,4 +334,4 @@ async function connectToMongoDBWithRetry() {
   console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
   return null;
 }
-    module.exports = router;
+module.exports = router;
