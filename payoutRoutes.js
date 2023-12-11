@@ -151,7 +151,7 @@ router.post('/procced/paid', withDb, async (req, res) => {
     const response = await sdk.postInstancesIdClientActionSendMessage({
         chatId: `${formattedNumber}@c.us`,
         message,
-      }, { id: '3009' });
+      }, { id: '3177' });
 
     res.status(200).json({ data: 'Successful' });
   } catch (error) {
