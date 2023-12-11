@@ -11,7 +11,6 @@ const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwr
 const dbName = 'VisionKalyan_New';
 
 
-
 router.post('/create-user', async (req, res) => {
   const client = await connectToMongoDBWithRetry();
   try {
@@ -338,4 +337,3 @@ async function connectToMongoDBWithRetry() {
   return null;
 }
     module.exports = router;
->>>>>>> 91173d34 (hjged)
