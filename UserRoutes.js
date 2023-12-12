@@ -8,6 +8,26 @@ const { MongoClient,ObjectId } = require('mongodb');
 const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'VisionKalyan_New';
 
+const sdk = require('api')('@waapi/v1.0#ehy7f2rlp03cxd0');
+sdk.auth('t0wD644lvq413rmF02Hx2TRpdOhBTmsd6Z1KjmIM');
+
+const createEMIMessage = (recipientName, accountID) => {
+  return `
+  Hi ${recipientName},
+
+We're delighted to inform you that your account has been created successfully with VisionKalyan Infra Pvt. Ltd. Welcome aboard!
+
+Account Details:
+- Username: ${accountID}
+
+Feel free to log in using the provided username and explore the features and services we offer. If you have any questions or need assistance, don't hesitate to reach out to our support team at +919021615137.
+
+Thank you for choosing Vision Kalyan. We look forward to serving you!
+
+Best regards,
+Vision Kalyan`;
+};
+
 
 router.post('/create-user', async (req, res) => {
   const client = await connectToMongoDBWithRetry();
@@ -45,37 +65,29 @@ router.post('/create-user', async (req, res) => {
       if (sponsorId) {
           const sponsorExists = await validateSponsorId(db, sponsorId);
           if (!sponsorExists) {
-              return res.status(404).json({ success: false, message: 'Sponsor ID not found' });
+            return res.status(404).json({ success: false, message: 'Sponsor ID not found' });
           }
       }
       // If a sponsorId is provided, validate if it exists
-      let epinExists = await validateEpin(db, sponsorId || 'admin', pin);
-      // Function to validate if the E-pin exists for the specified sponsor ID
-      let deletepin = sponsorId; // Use let instead of const
-      async function validateEpin(db, sponsorId, pin) {
-          try {
-              let existingEpin = await db.collection('epins').findOne({
-                  userId: sponsorId,
-                  pins: { $in: [pin] } // Use $in to check if pin exists in the array
-              });
-              if (existingEpin == null) {
-                  deletepin = 'VK24496086';
-                  existingEpin = await db.collection('epins').findOne({
-                      userId: 'VK24496086',
-                      pins: { $in: [pin] } // Use $in to check if pin exists in the array
-                  });
-              }
-              return existingEpin ? true : false;
-          } catch (error) {
-              console.error(error);
-              throw error;
-          }
-      }
+      let epinExists = await validateEpin(db, pin);
+
+      async function validateEpin(db, pin) {
+      try {
+        let existingEpin = await db.collection('epins').findOne({
+            pins: { $in: [pin] } // Use $in to check if pin exists in the array
+        });
+
+        return existingEpin ? existingEpin.userId : null;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
 
       if (!epinExists) {
           return res.status(404).json({ success: false, message: 'E-pin not found for the sponsor or admin' });
       }
-      await deleteUsedPin(db, deletepin || 'admin', pin);
+      await deleteUsedPin(db, pin);
       // Create the new user
       const createdAt = new Date().toISOString();
       const newUser = {
@@ -99,6 +111,15 @@ router.post('/create-user', async (req, res) => {
           hour12: false,
       };
       await db.collection('payments').insertOne({ username: username, date: now.toLocaleString('en-US', options) });
+      const message = createEMIMessage(newUser.name, newUser.username)
+      const countryCode = '91';
+    const formattedNumber = newUser.phoneNumber.startsWith('+') ? `${countryCode}${newUser.phoneNumber.slice(1)}` : `${countryCode}${newUser.phoneNumber}`;
+    // const formattedNumber = '918600988002';
+    const response = await sdk.postInstancesIdClientActionSendMessage({
+        chatId: `${formattedNumber}@c.us`,
+        message,
+      }, { id: '3009' });
+
       client.close();
       res.json({ success: true, user: newUser });
   } catch (error) {
@@ -208,17 +229,18 @@ router.post('/create-user', async (req, res) => {
           }
         }
       }
-      async function deleteUsedPin(db, sponsorId, pin) {
+      async function deleteUsedPin(db, pin) {
         try {
-          await db.collection('epins').updateOne(
-            { userId: sponsorId },
-            { $pull: { pins: pin } }
-          );
+            await db.collection('epins').updateOne(
+                { pins: pin },
+                { $pull: { pins: pin } }
+            );
         } catch (error) {
-          console.error(error);
-          throw error;
+            console.error(error);
+            throw error;
         }
-      };
+    }
+    
 
 
       router.get('/get-all-users', async (req, res) => {
