@@ -120,7 +120,7 @@ router.post('/procced/paid', withDb, async (req, res) => {
     let user = await UsersCollection.findOne({username:req.body.username});
 
     // const createEMIMessage = (recipientName, accountID, pendingEMIAmount , bankAccount) => {
-    const message = createEMIMessage(user.name,user.username,req.body['Net Payable'],user.bankDetails.accountNumber)
+    const message = createEMIMessage(user.name,user.username,req.body['Net Payable'],user.bankDetails?.accountNumber)
     const objectIdsToUpdate = req.body.ids.map(id => new ObjectId(id));
 
     // Update IndirectIncomeCollection
