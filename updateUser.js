@@ -10,6 +10,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'VisionKalyan_New';
 const credentials = require('./asstets/visionkalyan-aee28f9bb9ac.json');
+console.log(credentials);
 
 const jwtClient = new JWT({
   email: credentials.client_email,
