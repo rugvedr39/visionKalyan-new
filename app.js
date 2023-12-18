@@ -9,6 +9,9 @@ const loginRoutes = require('./loginRoutes');
 const payoutRoutes = require('./payoutRoutes');
 const projects = require('./land-project');
 const emi = require('./emi');
+const updateUser = require('./updateUser');
+var morgan = require('morgan')
+morgan('tiny')
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -183,6 +186,7 @@ app.get('/all-epins', async (req, res) => {
             _id: 1,
             name: 1,
             username: 1,
+            image:1,
             level1Count: {
               $size: {
                 $filter: {
@@ -195,7 +199,7 @@ app.get('/all-epins', async (req, res) => {
           },
         },
         { $sort: { level1Count: -1 } },
-        { $limit: 5 },
+        { $limit: 10 },
       ]).toArray();
       res.json({ success: true, topUsers: topUsers });
       client.close();
@@ -213,6 +217,7 @@ app.use('/users', loginRoutes);
 app.use('/payouts', payoutRoutes);
 app.use('/projects', projects);
 app.use('/emi', emi);
+app.use('/updateUser', updateUser);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

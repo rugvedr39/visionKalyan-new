@@ -118,7 +118,7 @@ router.post('/create-user', async (req, res) => {
     const response = await sdk.postInstancesIdClientActionSendMessage({
         chatId: `${formattedNumber}@c.us`,
         message,
-      }, { id: '3009' });
+      }, { id: '3177' });
 
       client.close();
       res.json({ success: true, user: newUser });
