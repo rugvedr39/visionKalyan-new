@@ -10,11 +10,12 @@ const payoutRoutes = require('./payoutRoutes');
 const projects = require('./land-project');
 const emi = require('./emi');
 const updateUser = require('./updateUser');
+const extraemi = require('./extraEMI');
 var morgan = require('morgan')
-morgan('tiny')
 
 const app = express();
 const port = process.env.PORT || 3000;
+app.use(morgan('tiny'));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -46,7 +47,7 @@ async function connectToMongoDBWithRetry() {
       currentRetry++;
 
       // Wait for a certain period before the next retry (e.g., 5 seconds)
-      const retryDelay = 1000;
+      const retryDelay = 5000;
       console.log(`Retrying in ${retryDelay / 1000} seconds...`);
       await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
@@ -218,6 +219,7 @@ app.use('/payouts', payoutRoutes);
 app.use('/projects', projects);
 app.use('/emi', emi);
 app.use('/updateUser', updateUser);
+app.use('/extraemi', extraemi);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
