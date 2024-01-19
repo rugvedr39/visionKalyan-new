@@ -17,12 +17,12 @@ async function connectToMongoDBWithRetry() {
       const client = await MongoClient.connect(mongoURL);
       return client;
     } catch (error) {
-      console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
+      // console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
       currentRetry++;
 
       // Wait for a certain period before the next retry (e.g., 5 seconds)
       const retryDelay = 1000;
-      console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+      // console.log(`Retrying in ${retryDelay / 1000} seconds...`);
       await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
   }}
@@ -36,7 +36,7 @@ router.post('/lands', async (req, res) => {
     const result = await db.collection(collectionName).insertOne(req.body);
     res.status(201).json(result);
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   } finally {
     client.close();
@@ -52,7 +52,7 @@ router.get('/lands', async (req, res) => {
     const lands = await db.collection(collectionName).find().toArray();
     res.json(lands);
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   } finally {
     client.close();
@@ -76,7 +76,7 @@ router.put('/lands/:id', async (req, res) => {
       res.json({ message: 'Land updated successfully' });
     }
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   } finally {
     client.close();
@@ -97,7 +97,7 @@ router.delete('/lands/:id', async (req, res) => {
       res.json({ message: 'Land deleted successfully' });
     }
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   } finally {
     client.close();
@@ -116,17 +116,17 @@ async function connectToMongoDBWithRetry() {
       const client = await MongoClient.connect(mongoURL);
       return client;
     } catch (error) {
-      console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
+      // console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
       currentRetry++;
 
       // Wait for a certain period before the next retry (e.g., 5 seconds)
       const retryDelay = 1000;
-      console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+      // console.log(`Retrying in ${retryDelay / 1000} seconds...`);
       await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
   }
 
-  console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
+  // console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
   return null;
 }
 module.exports = router;

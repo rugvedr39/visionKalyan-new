@@ -43,17 +43,17 @@ async function connectToMongoDBWithRetry() {
       const client = await MongoClient.connect(mongoURL);
       return client;
     } catch (error) {
-      console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
+      // console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
       currentRetry++;
 
       // Wait for a certain period before the next retry (e.g., 5 seconds)
       const retryDelay = 5000;
-      console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+      // console.log(`Retrying in ${retryDelay / 1000} seconds...`);
       await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
   }
 
-  console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
+  // console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
   return null;
 }
 
@@ -84,7 +84,7 @@ app.post('/generate-epins', async (req, res) => {
 
       res.json({ success: true, epins: generatedPins });
   } catch (error) {
-      console.error(error);
+      // console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
   } finally {
       if (client) {
@@ -112,7 +112,7 @@ app.get('/epins/:username', async (req, res) => {
           res.status(404).json({ success: false, message: 'E-pins not found for the specified user' });
       }
   } catch (error) {
-      console.error(error);
+      // console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
   } finally {
       if (client) {
@@ -134,7 +134,7 @@ app.get('/all-epins', async (req, res) => {
       const results = await db.collection('epins').find().toArray();
       res.json({ success: true, allEpins: results });
   } catch (error) {
-      console.error(error);
+      // console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
   } finally {
       if (client) {
@@ -158,7 +158,7 @@ app.get('/all-epins', async (req, res) => {
         const results = await db.collection('indirectIncomeCollection').updateMany({}, { $set: { status: 'unpaid' } });
         res.json({ success: true, allEpins: results });
     } catch (error) {
-        console.error(error);
+        // console.error(error);
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     } finally {
         if (client) {
@@ -205,7 +205,7 @@ app.get('/all-epins', async (req, res) => {
       res.json({ success: true, topUsers: topUsers });
       client.close();
     } catch (error) {
-      console.error('Error:', error);
+      // console.error('Error:', error);
     } finally {
       await client.close();
     }

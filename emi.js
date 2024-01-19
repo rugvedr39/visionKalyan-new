@@ -116,13 +116,13 @@ router.get('/', async (req, res) => {
           }, { id: '3099' });
 
       }catch(e){
-        console.log(e);
+        // console.log(e);
       }
 
     }
     res.status(200).json(result);
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   } finally {
     await client.close();

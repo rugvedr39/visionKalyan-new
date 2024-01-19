@@ -82,7 +82,7 @@ router.post('/upload/:userId', upload.single('image'), async (req, res) => {
       res.status(404).json({ success: false, message: 'User not found' });
     }
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
