@@ -13,7 +13,7 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
   
     // Establish a connection to MongoDB
-    const client = await connectToMongoDBWithRetry();
+    const client = await MongoClient.connect(mongoURL);;
   
     try {
       await client.connect();
@@ -41,7 +41,7 @@ router.post('/login', async (req, res) => {
         res.status(401).json({ success: false, message: 'Invalid password' });
       }
     } catch (error) {
-      console.error(error);
+      // console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
     } finally {
       // Close the MongoDB connection
@@ -61,17 +61,17 @@ router.post('/login', async (req, res) => {
         const client =await connectToMongoDBWithRetry();
         return client;
       } catch (error) {
-        console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
+        // console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
         currentRetry++;
   
         // Wait for a certain period before the next retry (e.g., 5 seconds)
         const retryDelay = 1000;
-        console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+        // console.log(`Retrying in ${retryDelay / 1000} seconds...`);
         await new Promise(resolve => setTimeout(resolve, retryDelay));
       }
     }
   
-    console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
+    // console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
     return null;
   }
 

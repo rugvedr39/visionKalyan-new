@@ -36,7 +36,7 @@ const withDb = async (req, res, next) => {
     req.db = client.db(dbName);
     next();
   } catch (error) {
-    console.error('Error connecting to the database:', error);
+    // console.error('Error connecting to the database:', error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 };
@@ -79,7 +79,7 @@ router.get('/payoutdetails', withDb, async (req, res) => {
 
     res.status(200).json({ totalAmountsByUser, unpaidIds });
   } catch (error) {
-    console.error('Error fetching payout details:', error);
+    // console.error('Error fetching payout details:', error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
@@ -95,7 +95,7 @@ router.post('/procced', withDb, async (req, res) => {
     );
     res.json({ success: true, message: 'Payments Procced' });
   } catch (error) {
-    console.error('Error fetching payout details:', error);
+    // console.error('Error fetching payout details:', error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
@@ -106,7 +106,7 @@ router.get('/get/procced', withDb, async (req, res) => {
     const result = await db.collection('PaymentProccedDetails').find().toArray();
     res.json({ success: true, data: result });
   } catch (error) {
-    console.error('Error fetching payout details:', error);
+    // console.error('Error fetching payout details:', error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
@@ -122,7 +122,7 @@ router.post('/procced/paid', withDb, async (req, res) => {
     let user = await UsersCollection.findOne({username:req.body.username});
 
     // const createEMIMessage = (recipientName, accountID, pendingEMIAmount , bankAccount) => {
-    const message = createEMIMessage(user.name,user.username,req.body['Net Payable'],user.bankDetails.accountNumber)
+    const message = createEMIMessage(user.name,user.username,req.body['Net Payable'],user.bankDetails?.accountNumber)
     const objectIdsToUpdate = req.body.ids.map(id => new ObjectId(id));
 
     // Update IndirectIncomeCollection
@@ -153,11 +153,11 @@ router.post('/procced/paid', withDb, async (req, res) => {
     const response = await sdk.postInstancesIdClientActionSendMessage({
         chatId: `${formattedNumber}@c.us`,
         message,
-      }, { id: '3009' });
+      }, { id: '3177' });
 
     res.status(200).json({ data: 'Successful' });
   } catch (error) {
-    console.error('Error updating payment details:', error);
+    // console.error('Error updating payment details:', error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
@@ -172,7 +172,7 @@ router.get('/payment/done-get', withDb, async (req, res) => {
     
     res.status(200).json({ data: result });
   } catch (error) {
-    console.error('Error fetching recent payments:', error);
+    // console.error('Error fetching recent payments:', error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
@@ -185,7 +185,7 @@ router.get('/payment/payout/:username', withDb, async (req, res) => {
     const result = await payoutpaymentscollections.find({ username }).toArray();
     res.status(200).json({success: true, data: result });
   } catch (error) {
-    console.error('Error fetching recent payments:', error);
+    // console.error('Error fetching recent payments:', error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
@@ -200,17 +200,17 @@ async function connectToMongoDBWithRetry() {
       const client = await MongoClient.connect(mongoURL);
       return client;
     } catch (error) {
-      console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
+      // console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
       currentRetry++;
 
       // Wait for a certain period before the next retry (e.g., 5 seconds)
       const retryDelay = 1000;
-      console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+      // console.log(`Retrying in ${retryDelay / 1000} seconds...`);
       await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
   }
 
-  console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
+  // console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
   return null;
 }
 module.exports = router;
