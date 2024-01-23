@@ -12,13 +12,12 @@ const dbName = 'VisionKalyan_New';
 const credentials = require('./asstets/visionkalyan-aee28f9bb9ac.json');
 
 router.post('/upload/:userId', upload.single('image'), async (req, res) => {
-  const jwtClient = new JWT({
-    email: credentials.client_email,
-    key: credentials.private_key,
-    scopes: ['https://www.googleapis.com/auth/drive'],
-  });
-
   try {
+    const jwtClient = new JWT({
+      email: 'visionkalyan@visionkalyan.iam.gserviceaccount.com',
+      key: credentials.private_key,
+      scopes: ['https://www.googleapis.com/auth/drive'],
+    });
     // Get access token using JWT
     const tokens = await jwtClient.authorize();
     const accessToken = tokens.access_token;

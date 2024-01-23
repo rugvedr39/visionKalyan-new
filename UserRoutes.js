@@ -30,7 +30,7 @@ Vision Kalyan`;
 
 
 router.post('/create-user', async (req, res) => {
-  const client = await connectToMongoDBWithRetry();
+  const client = await MongoClient.connect(mongoURL);;
   try {
       const {
           name,
@@ -243,34 +243,38 @@ router.post('/create-user', async (req, res) => {
     
 
 
-      router.get('/get-all-users', async (req, res) => {
-        const client = await connectToMongoDBWithRetry();
-        try {
-            await client.connect();
-            const db = client.db(dbName);
-    
-            const users = await db.collection('users').find({}, {
-                projection: {
-                    username: 1,
-                    name: 1,
-                    phoneNumber: 1,
-                    createdAt: 1,
-                    activationDate: 1,
-                    password: 1,
-                    sponsorId:1,
-                    _id: 0 // Exclude the MongoDB _id field
-                }
-            }).toArray();
-            client.close();
-            res.json({ success: true, users });
-        } catch (error) {
-            // console.error(error);
-            res.status(500).json({ success: false, error: 'Internal Server Error' });
-        }
-    });
+    router.get('/get-all-users', async (req, res) => {
+      const client = await MongoClient.connect(mongoURL);;
+      try {
+          await client.connect();
+          const db = client.db(dbName);
+  
+          const page = req.query.page || 1;
+          const pageSize = 50; // Adjust the page size as needed
+  
+          const users = await db.collection('users').find({}, {
+              projection: {
+                  username: 1,
+                  name: 1,
+                  phoneNumber: 1,
+                  createdAt: 1,
+                  activationDate: 1,
+                  password: 1,
+                  sponsorId: 1,
+                  _id: 0
+              }
+          }).skip((page - 1) * pageSize).limit(pageSize).toArray();
+  
+          client.close();
+          res.json({ success: true, users });
+      } catch (error) {
+          // console.error(error);
+          res.status(500).json({ success: false, error: 'Internal Server Error' });
+      }
+  });
 
     router.get('/countUsers', async (req, res) => {
-        const client = await connectToMongoDBWithRetry();
+        const client = await MongoClient.connect(mongoURL);;
         try {
             await client.connect();
             const db = client.db(dbName);
@@ -287,7 +291,7 @@ router.post('/create-user', async (req, res) => {
 
     router.get('/users/:username', async (req, res) => {
       const username = req.params.username;
-      const client = await connectToMongoDBWithRetry();
+      const client = await MongoClient.connect(mongoURL);;
       try {
           await client.connect();
           const db = client.db(dbName);
@@ -311,7 +315,7 @@ router.put('/update/:userId', async (req, res) => {
     const updateFields = req.body; // Assuming you send the fields to update in the request body
 
     // Connect to MongoDB
-    const client =await connectToMongoDBWithRetry();
+    const client =await MongoClient.connect(mongoURL);;
     const db = client.db(dbName);
 
     // Update the user by ID

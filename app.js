@@ -63,7 +63,7 @@ app.post('/generate-epins', async (req, res) => {
       const { userId, count } = req.body;
 
       // Connect to MongoDB
-      client = await connectToMongoDBWithRetry();
+      client = await MongoClient.connect(mongoURL);;
       const db = client.db(dbName);
 
       // Generate unique E-pins
@@ -101,7 +101,7 @@ app.get('/epins/:username', async (req, res) => {
   try {
       const username = req.params.username;
       // Connect to MongoDB
-      client = await connectToMongoDBWithRetry();
+      client = await MongoClient.connect(mongoURL);;
       const db = client.db(dbName);
 
       // Find E-pins for the given username
@@ -127,7 +127,7 @@ app.get('/all-epins', async (req, res) => {
   let client; // Declare the client variable outside the try block to make it accessible in the finally block
   try {
       // Connect to MongoDB
-      client = await connectToMongoDBWithRetry();
+      client = await MongoClient.connect(mongoURL);;
       const db = client.db(dbName);
 
       // Find all E-pins
@@ -151,7 +151,7 @@ app.get('/all-epins', async (req, res) => {
     let client; // Declare the client variable outside the try block to make it accessible in the finally block
     try {
         // Connect to MongoDB
-        client =await connectToMongoDBWithRetry();
+        client =await MongoClient.connect(mongoURL);;
         const db = client.db(dbName);
 
         // Find all E-pins
@@ -171,7 +171,7 @@ app.get('/all-epins', async (req, res) => {
 
   app.get('/topusers', async (req, res) => {
     try {
-      const client =await connectToMongoDBWithRetry();
+      const client =await MongoClient.connect(mongoURL);;
       const db = client.db(dbName);
   
       const excludedUsernames = ['VK24496086', 'VK53912943'];

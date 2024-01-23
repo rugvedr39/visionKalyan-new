@@ -29,7 +29,7 @@ async function connectToMongoDBWithRetry() {
 
 // Create
 router.post('/lands', async (req, res) => {
-  const client = await connectToMongoDBWithRetry();
+  const client = await MongoClient.connect(mongoURL);;
   try {
     const db = client.db(dbName);
     
@@ -45,7 +45,7 @@ router.post('/lands', async (req, res) => {
 
 // Read
 router.get('/lands', async (req, res) => {
-  const client = await connectToMongoDBWithRetry();
+  const client = await MongoClient.connect(mongoURL);;
   try {
     const db = client.db(dbName);
     
@@ -61,7 +61,7 @@ router.get('/lands', async (req, res) => {
 
 // Update
 router.put('/lands/:id', async (req, res) => {
-  const client = await connectToMongoDBWithRetry();
+  const client = await MongoClient.connect(mongoURL);;
   try {
     const db = client.db(dbName);
     
@@ -85,7 +85,7 @@ router.put('/lands/:id', async (req, res) => {
 
 // Delete
 router.delete('/lands/:id', async (req, res) => {
-  const client = await connectToMongoDBWithRetry();
+  const client = await MongoClient.connect(mongoURL);;
   try {
     const db = client.db(dbName);
     
@@ -106,7 +106,7 @@ router.delete('/lands/:id', async (req, res) => {
 
 
 
-async function connectToMongoDBWithRetry() {
+async function connectToMongoDBWithRetry(){
   const maxRetries = 100; // Adjust the number of retries as needed
   let currentRetry = 0;
 

@@ -26,7 +26,7 @@ router.get('/:username', async function (req, res) {
     
     res.json(userData);
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -44,7 +44,7 @@ router.post('/:username', async function (req, res) {
 
     res.json({ success: true });
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -65,12 +65,12 @@ router.post('/delete/:username', async function (req, res) {
       for (const userCollection of userCollections) {
         const collectionId = userCollection._id;
         const collectionAmount = userCollection.amount || 0; // Ensure a default value
-        console.log('remaining amount:'+remainingAmount);
-        console.log('collectionAmount:'+collectionAmount);
+        // console.log('remaining amount:'+remainingAmount);
+        // console.log('collectionAmount:'+collectionAmount);
   
         if (remainingAmount >= collectionAmount) {
           // Remove the entire collection
-          console.log('colledction ID:'+collectionId);
+          // console.log('colledction ID:'+collectionId);
           await db.collection(extraemicollections).deleteOne({ _id: collectionId });
           remainingAmount -= collectionAmount;
         } else {
