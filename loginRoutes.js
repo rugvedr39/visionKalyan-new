@@ -13,7 +13,7 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
   
     // Establish a connection to MongoDB
-    const client = await MongoClient.connect(mongoURL);;
+    const client = await connectToMongoDBWithRetry();;
   
     try {
       await client.connect();

@@ -17,7 +17,7 @@ router.post('/add', async (req, res) => {
       const { username, date } = req.body;
 
       // Connect to MongoDB
-      client = await MongoClient.connect(mongoURL);;
+      client = await connectToMongoDBWithRetry()
       const db = client.db(dbName);
 
       // Check if the username is available
@@ -139,7 +139,7 @@ router.get('/payment/:username', async (req, res) => {
   try {
       const username = req.params.username;
       // Connect to MongoDB
-      client =await MongoClient.connect(mongoURL);;
+      client =await connectToMongoDBWithRetry()
       const db = client.db(dbName);
       // Retrieve payments from the 'payments' collection
       const result = await db.collection('payments').find({ username }).toArray();
@@ -161,7 +161,7 @@ router.get('/income/:username', async (req, res) => {
   try {
       const username = req.params.username;
       // Connect to MongoDB
-      client = await MongoClient.connect(mongoURL);;
+      client = await connectToMongoDBWithRetry()
       const db = client.db(dbName);
       // Retrieve income from the 'indirectIncomeCollection' collection
       const result = await db.collection('indirectIncomeCollection').find({ username }).toArray();

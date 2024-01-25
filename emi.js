@@ -3,12 +3,57 @@ const router = express.Router();
 const { MongoClient } = require('mongodb');
 const sdk = require('api')('@waapi/v1.0#ehy7f2rlp03cxd0');
 sdk.auth('t0wD644lvq413rmF02Hx2TRpdOhBTmsd6Z1KjmIM');
+const moment = require('moment');
 
 // MongoDB connection URL
 const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'VisionKalyan_New';
 const paymentsCollection = 'payments';
 const usersCollection = 'users';
+
+
+router.get('/getemibydate/:date', async (req, res) => {
+  const  {date}  = req.params;
+  const client = new MongoClient(mongoURL);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+      const dateRegexPattern = new RegExp(`^${date}`);
+    console.log(date);
+    const result = await db.collection(paymentsCollection).aggregate([
+      {
+        $match: {
+          date: { $regex: dateRegexPattern },
+        },
+      },
+      {
+        $lookup: {
+          from: usersCollection,
+          localField: 'username',
+          foreignField: 'username',
+          as: 'userDetails',
+        },
+      },
+      {
+        $unwind: '$userDetails',
+      },
+      {
+        $project: {
+          username: 1,
+          date: 1,
+          name: '$userDetails.name', // assuming the name field in usersCollection is 'name'
+          // add other fields as needed
+        },
+      },
+    ]).toArray();
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  } finally {
+    await client.close();
+  }
+});
 
 router.get('/', async (req, res) => {
   const client = new MongoClient(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });

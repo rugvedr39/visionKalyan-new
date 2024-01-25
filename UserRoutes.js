@@ -32,7 +32,7 @@ Vision Kalyan`;
 
 
 router.post('/create-user', async (req, res) => {
-  const client = await MongoClient.connect(mongoURL);;
+  const client = await connectToMongoDBWithRetry();
   try {
       const {
           name,
@@ -111,6 +111,12 @@ router.post('/create-user', async (req, res) => {
       const options = Intl.DateTimeFormatOptions = {
           timeZone: 'Asia/Kolkata',
           hour12: false,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
       };
       await db.collection('payments').insertOne({ username: username, date: now.toLocaleString('en-US', options) });
       const message = createEMIMessage(newUser.name, newUser.username)
@@ -246,13 +252,13 @@ router.post('/create-user', async (req, res) => {
 
 
     router.get('/get-all-users', async (req, res) => {
-      const client = await MongoClient.connect(mongoURL);;
+      const client = await connectToMongoDBWithRetry();
       try {
           await client.connect();
           const db = client.db(dbName);
   
           const page = req.query.page || 1;
-          const pageSize = 50; // Adjust the page size as needed
+          const pageSize = 200; // Adjust the page size as needed
   
           const users = await db.collection('users').find({}, {
               projection: {
@@ -276,9 +282,8 @@ router.post('/create-user', async (req, res) => {
   });
 
     router.get('/countUsers', async (req, res) => {
-        const client = await MongoClient.connect(mongoURL);;
+        const client = await connectToMongoDBWithRetry()
         try {
-            await client.connect();
             const db = client.db(dbName);
     
             const user = await  db.collection('users').countDocuments()

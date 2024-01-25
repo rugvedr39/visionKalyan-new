@@ -1,9 +1,12 @@
 <<<<<<< HEAD
 =======
 // app.js
-
 const express = require('express');
-const { MongoClient } = require('mongodb');
+const { MongoClient,ObjectId } = require('mongodb');
+const ExcelJS = require('exceljs');
+var cron = require('node-cron');
+const sgMail = require('@sendgrid/mail');
+const fs = require('fs');
 const bodyParser = require('body-parser');
 const paymentRoutes = require('./paymentRoutes');
 const usersRoutes = require('./UserRoutes');
@@ -65,7 +68,7 @@ app.post('/generate-epins', async (req, res) => {
       const { userId, count } = req.body;
 
       // Connect to MongoDB
-      client = await MongoClient.connect(mongoURL);;
+      client = await connectToMongoDBWithRetry()
       const db = client.db(dbName);
 
       // Generate unique E-pins
@@ -103,7 +106,7 @@ app.get('/epins/:username', async (req, res) => {
   try {
       const username = req.params.username;
       // Connect to MongoDB
-      client = await MongoClient.connect(mongoURL);;
+      client = await connectToMongoDBWithRetry()
       const db = client.db(dbName);
 
       // Find E-pins for the given username
@@ -129,7 +132,7 @@ app.get('/all-epins', async (req, res) => {
   let client; // Declare the client variable outside the try block to make it accessible in the finally block
   try {
       // Connect to MongoDB
-      client = await MongoClient.connect(mongoURL);;
+      client = await connectToMongoDBWithRetry()
       const db = client.db(dbName);
 
       // Find all E-pins
@@ -153,7 +156,7 @@ app.get('/all-epins', async (req, res) => {
     let client; // Declare the client variable outside the try block to make it accessible in the finally block
     try {
         // Connect to MongoDB
-        client =await MongoClient.connect(mongoURL);;
+        client =await connectToMongoDBWithRetry()
         const db = client.db(dbName);
 
         // Find all E-pins
@@ -173,7 +176,7 @@ app.get('/all-epins', async (req, res) => {
 
   app.get('/topusers', async (req, res) => {
     try {
-      const client =await MongoClient.connect(mongoURL);;
+      const client =connectToMongoDBWithRetry()
       const db = client.db(dbName);
   
       const excludedUsernames = ['VK24496086', 'VK53912943'];
@@ -226,4 +229,3 @@ app.use('/extraemi', extraemi);
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
->>>>>>> 91173d34 (hjged)
