@@ -14,8 +14,10 @@ const projects = require('./land-project');
 const emi = require('./emi');
 const updateUser = require('./updateUser');
 const extraemi = require('./extraEMI');
+require('dotenv').config();
 var morgan = require('morgan')
 console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
+
 
 
 const app = express();
