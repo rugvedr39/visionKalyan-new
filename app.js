@@ -15,10 +15,12 @@ const emi = require('./emi');
 const updateUser = require('./updateUser');
 const extraemi = require('./extraEMI');
 var morgan = require('morgan')
+console.log(process.env.SENDGRID_API_KEY);
 
 const app = express();
 const port = process.env.PORT || 3000;
 app.use(morgan('tiny'));
+console.log(process.env.SENDGRID_API_KEY);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -327,7 +329,7 @@ const fetchDataAndGenerateExcel = async () => {
     await workbook.xlsx.writeFile(excelFileName);
 
     const attachmentContent = fs.readFileSync(excelFileName, 'base64');
-    sgMail.setApiKey('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');
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
     const msg = {
           to: 'rugvedr39@gmail.com',
