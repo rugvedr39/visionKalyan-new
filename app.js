@@ -19,6 +19,7 @@ var morgan = require('morgan')
 const app = express();
 const port = process.env.PORT || 3000;
 app.use(morgan('tiny'));
+
 console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -173,8 +174,9 @@ app.get('/all-epins', async (req, res) => {
 
 
   app.get('/topusers', async (req, res) => {
+    console.log('heelo');
     try {
-      const client =connectToMongoDBWithRetry()
+      const client = await connectToMongoDBWithRetry()
       const db = client.db(dbName);
   
       const excludedUsernames = ['VK24496086', 'VK53912943'];
@@ -208,7 +210,7 @@ app.get('/all-epins', async (req, res) => {
       res.json({ success: true, topUsers: topUsers });
       client.close();
     } catch (error) {
-      // console.error('Error:', error);
+      console.error('Error:', error);
     } finally {
       await client.close();
     }
