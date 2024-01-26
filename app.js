@@ -15,7 +15,8 @@ const emi = require('./emi');
 const updateUser = require('./updateUser');
 const extraemi = require('./extraEMI');
 var morgan = require('morgan')
-console.log(process.env.SENDGRID_API_KEY);
+console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
+
 
 const app = express();
 const port = process.env.PORT || 3000;
