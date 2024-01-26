@@ -20,8 +20,6 @@ const app = express();
 const port = process.env.PORT || 3000;
 app.use(morgan('tiny'));
 console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
-console.log('All Environment Variables:', process.env);
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use((req, res, next) => {
