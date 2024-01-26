@@ -16,14 +16,10 @@ const updateUser = require('./updateUser');
 const extraemi = require('./extraEMI');
 require('dotenv').config();
 var morgan = require('morgan')
-console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
-
-
-
 const app = express();
 const port = process.env.PORT || 3000;
 app.use(morgan('tiny'));
-console.log(process.env.SENDGRID_API_KEY);
+console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
