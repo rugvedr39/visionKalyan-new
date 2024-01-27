@@ -335,7 +335,7 @@ const fetchDataAndGenerateExcel = async () => {
           to: 'rugvedr39@gmail.com',
           from: 'rugved.developer@gmail.com',
           subject: 'Report From Vision Kalyan',
-          text: '',
+          text: 'Hello',
           attachments: [
             {
               content: attachmentContent,
