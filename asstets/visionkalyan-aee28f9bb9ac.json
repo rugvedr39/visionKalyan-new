@@ -1,0 +1,14 @@
+{
+    "type": "service_account",
+    "project_id": "visionkalyan",
+    "private_key_id": "ed3ee988becd5b58e1b22dce84d9b3259ae88e0a",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDDpy81CVrjJFTk\ncF3rNp+uf3eKBPp5In3Zw9C9AdsqO/ihdaLyHvQ4kVYhNX/iWGjBXfFpsDnw6Nmr\nZFLGBIsHf90bwco8BXOu6soQCDeSvgR2YKK2kdtPCI1EYnDwZaDAQ/SRnI2go4Mi\ndZ5yIeabLnSABL9GQegxxl3YS47CuqyQfd8+oLu+VHgM/gKIBqbsgiqekb3R9VZj\nF1C3vxxWuJxNS27KFlZGsHYcxXZBvWmOOLj7IdRvsDvMmglXefBMWE/ZursK1uMJ\nixO7iLdYQWvGkf4Lwru1UJ+Rv5GjU26jCuPUpFdwE6znbJBdpp+grluklKKfwUbO\nLodjQE+jAgMBAAECggEAMJ/aqBwwldXgMTvJ45yaN9RfAZK2KyfKzjWPqYGOFeN8\nqafiPLk7qdlY5fz1UOv28OOnjUQqSjicbC+NMMBNSypYab8SQzN5qiWY3T4ljZci\n5cajeasrLWurLC0o813WgyIAZLXbLuqkOwqvO584QCXd9zj2zn+vtLsfdJNmofcy\nIk4JkoknCKRZgwAvUopdr3ccucGu41rRa0zuUF+P5bpYrYw2AfDU6hH0inW/qrE4\nq7dTBxs8DG3SQDO/PGdllZpI++DbsP2WR+O6f8QsRh+VYBj/g8FCJSga2XEijOti\n0Gp52VvVNYi7njKR7Hh5HNiNwUcfI7s5wAZHOuC0UQKBgQD0bDUH96mfJay52EDg\nQ2KjUWNtHLm8/+JMEHyCNUSpZLeKf5Q4EkKu/0Ck6TSwvNhpsHRD0TgUKZVgcc/b\nukTM+A65OQKw97uIRb9b0CFuGeX1ny41TnZlBGgjOprhWEQJ1zhFw1LDYmg3IdT1\nrhIQnxiJtotPSMTjcR6D3RLmMQKBgQDM65y0N89cYadG422/RnoHZYK3fUuCZ087\n/QRbM2W0ldEX1z4Fw2fBKt1BxaPdzb9LkCdzc5vSJmeUUZZPp+7HSYHbH1eYYEaY\n4YyLG9uojOBspFKqeqjEdMDIc7fWMf3ZaHGcvfsxh6WcWAenJjXX3Ci5Bym0fg/Y\nxxnJPaxaEwKBgQDL+dF3yLMBYUt3/ISHozSZ3r3+vM40b8bGe6usbg/S3X5eUoG7\nGWIU8GdeOFAEflSMPvmH7v3BtcI3LkOstxHbi9eds3oPfW4/FxXO5S5A19QU2raR\nPd2IB9lwLOQ70pFVNQp9Dbfv3hvihpVWQeJJhLvRkUlI7Q2CUVCJ8uBmwQKBgQCN\n9Mphriff/2Y6HWLxlokChre/FPUyKQ8ip2xVIY3bQ83NjjZRF8TQdDlCTv/tr5JN\nbldmCzhupFwsyzgthlBLjgh/G38697bwQY9y7qGEadMub8c0gjRXo+nI8yDvKUKJ\nUWkjBBj3ftijLfhfOoEiQEmVo/ioKIwhyAt89VRoMQKBgBPqGLGOCP54Z0M4KCGl\n7fb1s596RPD85obO86IaEFVpPhPr2QjJ8dxBhIlDGpxlv6ewSwxa670sWEFxHRKz\nzPnenyVzZortWXOftGPu9z/ItlD3cQ5lIYNeO7osn5P5buTQM0CBK6GKKKD3HIb/\nxT1T4/Ev3kmdBmrXeioBoXj/\n-----END PRIVATE KEY-----\n",
+    "client_email": "visionkalyan@visionkalyan.iam.gserviceaccount.com",
+    "client_id": "107771657890961592212",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/visionkalyan%40visionkalyan.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+  }
+  
