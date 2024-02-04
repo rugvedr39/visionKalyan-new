@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-=======
+//<<<<<<< HEAD =======
 const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');

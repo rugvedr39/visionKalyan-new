@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-=======
+//<<<<<<< HEAD =======
 // paymentRoutes.js
 
 const express = require('express');

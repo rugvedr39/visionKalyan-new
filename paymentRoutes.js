@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-=======
+//<<<<<<< HEAD =======
 // paymentRoutes.js
 
 const express = require('express');
@@ -202,4 +201,4 @@ async function connectToMongoDBWithRetry() {
     return null;
   }
 module.exports = router;
->>>>>>> 91173d34 (hjged)
+//>>>>>>> 91173d34 (hjged)

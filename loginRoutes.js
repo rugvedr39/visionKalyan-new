@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-=======
+//<<<<<<< HEAD
 
 const express = require('express');
 const router = express.Router();
@@ -76,4 +75,4 @@ router.post('/login', async (req, res) => {
   }
 
 module.exports = router;
->>>>>>> 91173d34 (hjged)
+// 91173d34 (hjged)
