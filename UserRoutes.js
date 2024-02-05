@@ -329,7 +329,7 @@ router.put('/update/:userId', async (req, res) => {
     const updateFields = req.body; // Assuming you send the fields to update in the request body
 
     // Connect to MongoDB
-    const client =await MongoClient.connect(mongoURL);;
+    const client =await connectToMongoDBWithRetry();
     const db = client.db(dbName);
 
     // Update the user by ID
@@ -347,6 +347,43 @@ router.put('/update/:userId', async (req, res) => {
     }
   } catch (error) {
     // console.error(error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+});
+
+router.get('/achivers/:userId/:fromdate/:todate', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const toDate = req.params.todate;
+    const fromDate = req.params.fromdate;
+    const fromDateObject = new Date(fromDate.split('-').reverse().join('-'));
+    const toDateObject = new Date(toDate.split('-').reverse().join('-'));
+    console.log('form date',fromDateObject);
+    console.log('to this date',toDateObject);
+    const client = await connectToMongoDBWithRetry();
+    const db = client.db(dbName);
+    const user = await db.collection('users').findOne({ username: userId });
+    if (user && user.downline && user.downline.length > 0) {
+      // const downlineUsernames = user.downline.map(item => item.username);
+      const downlineUsernames = user.downline.filter(item=>item.level===1).map(item => item.username);
+      const downlineCreatedAtData = await db.collection('users').find({ username: { $in: downlineUsernames },
+        createdAt: {
+          $gte: fromDateObject.toISOString(),
+          $lt: toDateObject.toISOString()
+        }
+      })
+        .project({ username: 1, createdAt: 1 }) 
+        .toArray();
+
+      // Send the result as a response
+      res.status(200).json({ success: true, data: downlineCreatedAtData });
+    } else {
+      // User not found or downline is empty
+      res.status(404).json({ success: false, message: 'User not found or downline is empty' });
+    }
+  } catch (error) {
+    // Handle any errors that occurred during the process
+    console.error('Error fetching achievers:', error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });

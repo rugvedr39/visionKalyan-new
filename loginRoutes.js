@@ -55,7 +55,7 @@ router.post('/login', async (req, res) => {
     while (currentRetry < maxRetries) {
       try {
         // Connect to MongoDB
-        const client =await connectToMongoDBWithRetry();
+        const client = await MongoClient.connect(mongoURL);
         return client;
       } catch (error) {
         // console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
