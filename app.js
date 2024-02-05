@@ -149,9 +149,6 @@ app.get('/all-epins', async (req, res) => {
   }
 });
 
-
-
-
   app.get('/unpaid', async (req, res) => {
     let client; // Declare the client variable outside the try block to make it accessible in the finally block
     try {
@@ -175,7 +172,6 @@ app.get('/all-epins', async (req, res) => {
 
 
   app.get('/topusers', async (req, res) => {
-    console.log('heelo');
     try {
       const client = await connectToMongoDBWithRetry()
       const db = client.db(dbName);

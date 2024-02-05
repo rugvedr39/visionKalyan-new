@@ -90,8 +90,15 @@ router.post('/create-user', async (req, res) => {
       }
       await deleteUsedPin(db, pin);
       // Create the new user
+      const userIdObjectId = new ObjectId('65c050bdda616ec50817b86f');
+      const counter = await db.collection('counters').findOneAndUpdate(
+        { _id: userIdObjectId },
+        { $inc: { sequence_value: 1 } },
+        { returnDocument: 'after' }
+      );
       const createdAt = new Date().toISOString();
       const newUser = {
+          serialNumber: counter.sequence_value,
           username,
           name,
           password,
@@ -106,18 +113,19 @@ router.post('/create-user', async (req, res) => {
       // Insert the new user into the collection
       const result = await db.collection('users').insertOne(newUser);
       await updateDownlineLevels(db, sponsorId, username, 1, result.insertedId);
-      const now = new Date();
-      const options = Intl.DateTimeFormatOptions = {
-          timeZone: 'Asia/Kolkata',
-          hour12: false,
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-      };
-      await db.collection('payments').insertOne({ username: username, date: now.toLocaleString('en-US', options) });
+      const options = {
+        timeZone: 'Asia/Kolkata',
+        hour12: false,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    };
+    const now = new Date();
+    const formattedDate = now.toLocaleString('en-US', options).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2,');
+    await db.collection('payments').insertOne({ username: username, date: formattedDate });
       const message = createEMIMessage(newUser.name, newUser.username)
       const countryCode = '91';
     const formattedNumber = newUser.phoneNumber.startsWith('+') ? `${countryCode}${newUser.phoneNumber.slice(1)}` : `${countryCode}${newUser.phoneNumber}`;
