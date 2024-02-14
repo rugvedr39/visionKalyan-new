@@ -62,7 +62,7 @@ router.post('/login', async (req, res) => {
         currentRetry++;
   
         // Wait for a certain period before the next retry (e.g., 5 seconds)
-        const retryDelay = 1000;
+        const retryDelay = 5000;
         // console.log(`Retrying in ${retryDelay / 1000} seconds...`);
         await new Promise(resolve => setTimeout(resolve, retryDelay));
       }

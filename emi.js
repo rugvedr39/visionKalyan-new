@@ -149,22 +149,22 @@ router.get('/', async (req, res) => {
       Vision Kalyan`;
     };
 
-    for (let index = 0; index < result.length; index++) {
-      try{
-        const countryCode = '91';
-        const formattedNumber = result[index].phone.startsWith('+') ? `${countryCode}${result[index].phone.slice(1)}` : `${countryCode}${result[index].phone}`;
-        // const formattedNumber = '918600988002';
-        let message = createEMIMessage(result[index].name, result[index].username, 2000).toString();
-        const response = await sdk.postInstancesIdClientActionSendMessage({
-            chatId: `${formattedNumber}@c.us`,
-            message,
-          }, { id: '3009' });
+    // for (let index = 0; index < result.length; index++) {
+    //   try{
+    //     const countryCode = '91';
+    //     const formattedNumber = result[index].phone.startsWith('+') ? `${countryCode}${result[index].phone.slice(1)}` : `${countryCode}${result[index].phone}`;
+    //     // const formattedNumber = '918600988002';
+    //     let message = createEMIMessage(result[index].name, result[index].username, 2000).toString();
+    //     const response = await sdk.postInstancesIdClientActionSendMessage({
+    //         chatId: `${formattedNumber}@c.us`,
+    //         message,
+    //       }, { id: '3009' });
 
-      }catch(e){
-        console.log(e);
-      }
+    //   }catch(e){
+    //     console.log(e);
+    //   }
 
-    }
+    // }
     res.status(200).json(result);
   } catch (error) {
     console.error(error);
