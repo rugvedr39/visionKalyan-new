@@ -112,10 +112,6 @@ router.get('/get/procced', async (req, res) => {
 router.post('/procced/paid', async (req, res) => {
   try {
     const client = await connectToMongoDBWithRetry();
-    if (!client) {
-      return res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-
     const db = client.db(dbName);
     const PaymentProccedDetailsCollection = db.collection('PaymentProccedDetails');
     const UsersCollection = db.collection('users');
@@ -123,9 +119,8 @@ router.post('/procced/paid', async (req, res) => {
     const payoutpaymentscollections = db.collection('RecentPayments');
     let user = await UsersCollection.findOne({ username: req.body.username });
 
-    const message = createEMIMessage(user.name, user.username, req.body['Net Payable'], user.bankDetails?.accountNumber);
+    // const message = createEMIMessage(user.name, user.username, req.body['Net Payable'], user.bankDetails?.accountNumber);
     const objectIdsToUpdate = req.body.ids.map(id => new ObjectId(id));
-
     // Update IndirectIncomeCollection
     await indirectIncomeCollection.updateMany(
       { _id: { $in: objectIdsToUpdate } },
@@ -134,29 +129,30 @@ router.post('/procced/paid', async (req, res) => {
 
     // Update PaymentProccedDetailsCollection
     const result = await PaymentProccedDetailsCollection.updateOne(
-      { _id: new ObjectId(req.body._id) },
+      { _id: new ObjectId(req.body.id) },
       { $pull: { data: { Name: req.body.Name } } }
     );
 
     // Insert into RecentPayments collection
 
     // Check if data array is empty and delete the document
-    const result1 = await PaymentProccedDetailsCollection.findOne({ _id: new ObjectId(req.body._id) });
+    const result1 = await PaymentProccedDetailsCollection.findOne({ _id: new ObjectId(req.body.id) });
     if (result1.data.length === 0) {
-      await PaymentProccedDetailsCollection.findOneAndDelete({ _id: new ObjectId(req.body._id) });
+      await PaymentProccedDetailsCollection.findOneAndDelete({ _id: new ObjectId(req.body.id) });
     }
-    delete req.body._id;
+    delete req.body.id;
     await payoutpaymentscollections.insertOne(req.body);
 
-    const countryCode = '91';
-    const formattedNumber = user.phoneNumber.startsWith('+') ? `${countryCode}${user.phoneNumber.slice(1)}` : `${countryCode}${user.phoneNumber}`;
-    const response = await sdk.postInstancesIdClientActionSendMessage({
-      chatId: `${formattedNumber}@c.us`,
-      message,
-    }, { id: '3177' });
+    // const countryCode = '91';
+    // const formattedNumber = user.phoneNumber.startsWith('+') ? `${countryCode}${user.phoneNumber.slice(1)}` : `${countryCode}${user.phoneNumber}`;
+    // const response = await sdk.postInstancesIdClientActionSendMessage({
+    //   chatId: `${formattedNumber}@c.us`,
+    //   message,
+    // }, { id: '3177' });
 
     res.status(200).json({ data: 'Successful' });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
