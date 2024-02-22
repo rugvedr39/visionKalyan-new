@@ -19,7 +19,7 @@ router.get('/getemibydate/:date', async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
       const dateRegexPattern = new RegExp(`^${date}`);
-    console.log(date);
+    // console.log(date);
     const result = await db.collection(paymentsCollection).aggregate([
       {
         $match: {

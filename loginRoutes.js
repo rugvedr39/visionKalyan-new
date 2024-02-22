@@ -28,7 +28,7 @@ router.post('/login', async (req, res) => {
         const downlineWithNames = await Promise.all(user.downline.map(async (downlineItem) => {
           const { userId, ...rest } = downlineItem;
           const downlineUser = await db.collection('users').findOne({ _id: new Object(userId) });
-          console.log(downlineUser);
+          // console.log(downlineUser);
           const name = downlineUser ? downlineUser.name : 'Unknown'; // Default to 'Unknown' if user not found
           return { ...rest, name };
         }));

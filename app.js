@@ -271,7 +271,7 @@ const fetchDataAndGenerateExcel = async () => {
       userEntry.userDetails = userDetails;
     }
 
-    console.log(totalAmountsByUser, unpaidIds);
+    // console.log(totalAmountsByUser, unpaidIds);
 
     const totalAmountsByUser1 = totalAmountsByUser.map((entry) => ({
       Name: entry.userDetails?.name,
