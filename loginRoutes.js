@@ -23,8 +23,7 @@ router.post('/login', async (req, res) => {
       }
   
       // Compare the provided password with the password stored in the database
-      if (password === user.password) {
-
+      if (password == user.password) {
         const downlineWithNames = await Promise.all(user.downline.map(async (downlineItem) => {
           const { userId, ...rest } = downlineItem;
           const downlineUser = await db.collection('users').findOne({ _id: new Object(userId) });
