@@ -1,49 +1,58 @@
 const express = require('express');
 const router = express.Router();
 const { MongoClient } = require('mongodb');
+const { ObjectId } = require('mongodb');
 
 // MongoDB connection URL
 const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'VisionKalyan_New';
 
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-  
-    // Establish a connection to MongoDB
-    const client = await connectToMongoDBWithRetry();;
-  
-    try {
-      await client.connect();
+  const { username, password } = req.body;
+  const client = await connectToMongoDBWithRetry();
+
+  try {
+      // Connect to MongoDB
       const db = client.db(dbName);
-  
+
       // Find the user in the database
-      const user = await db.collection('users').findOne({ username:username });
+      const user = await db.collection('users').findOne({ username });
+
+      // Check if user exists
       if (!user) {
-        return res.status(401).json({ success: false, message: 'Invalid username' });
+          return res.status(401).json({ success: false, message: 'Invalid username' });
       }
+
       // Compare the provided password with the password stored in the database
       if (password == user.password) {
-        const downlineWithNames = await Promise.all(user.downline.map(async (downlineItem) => {
-          const { userId, ...rest } = downlineItem;
-          const downlineUser = await db.collection('users').findOne({ _id: new Object(userId) });
-          // console.log(downlineUser);
-          const name = downlineUser ? downlineUser.name : 'Unknown'; // Default to 'Unknown' if user not found
-          return { ...rest, name };
-        }));
-        user.downline = downlineWithNames;
-        res.json({ success: true, data:user });
+          // Fetch downline users' names asynchronously
+          const downlineWithNames = await Promise.all(user.downline.map(async (downlineItem) => {
+              const { userId, ...rest } = downlineItem;
+              const downlineUser = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+              const name = downlineUser ? downlineUser.name : 'Unknown'; // Default to 'Unknown' if user not found
+              return { ...rest, name };
+          }));
+
+          // Replace downline with names
+          user.downline = downlineWithNames;
+
+          // Send successful response with user data
+          res.json({ success: true, data: user });
       } else {
-        res.status(401).json({ success: false, message: 'Invalid password' });
+          // Send error response for invalid password
+          res.status(401).json({ success: false, message: 'Invalid password' });
       }
-    } catch (error) {
+  } catch (error) {
       console.error(error);
+      // Send error response for internal server error
       res.status(500).json({ success: false, error: 'Internal Server Error' });
-    } finally {
+  } finally {
       // Close the MongoDB connection
-      await client.close();
-    }
-  });
-  
+      if (client) {
+          await client.close();
+      }
+  }
+});
 
 
   async function connectToMongoDBWithRetry() {

@@ -20,6 +20,11 @@ var morgan = require('morgan')
 const app = express();
 const port = process.env.PORT || 3000;
 app.use(morgan('tiny'));
+var admin = require("firebase-admin");
+var serviceAccount = require("./asstets/visionkalyan-9785c-firebase-adminsdk-wfa53-d90de7ad58.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 
 console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
 app.use(bodyParser.json());
@@ -170,6 +175,23 @@ app.get('/all-epins', async (req, res) => {
     }
 });
 
+
+app.post('/send',async (req,res)=>{
+  const receivedToken = req.body.fcmToken;
+  const payload = {
+    notification: {
+        title: 'Title of the notification',
+        body: 'Body of the notification'
+    }
+};
+  admin.messaging().sendToDevice(receivedToken, payload)
+    .then(response => {
+        console.log('Notification sent successfully:', response);
+    })
+    .catch(error => {
+        console.error('Error sending notification:', error);
+    });
+})
 
   app.get('/topusers', async (req, res) => {
     try {
