@@ -203,7 +203,7 @@ async function connectToMongoDBWithRetry() {
       return client;
     } catch (error) {
       currentRetry++;
-
+      restartPM2App("payoutRoutes.js")
       // Wait for a certain period before the next retry (e.g., 5 seconds)
       const retryDelay = 5000;
       await new Promise(resolve => setTimeout(resolve, retryDelay));
@@ -211,6 +211,25 @@ async function connectToMongoDBWithRetry() {
   }
 
   return null;
+}
+
+
+function restartPM2App(url) {
+  pm2.connect(function(err) {
+      if (err) {
+          console.error(err);
+          process.exit(2);
+      }
+      console.log(url);
+      pm2.restart('app.js', function(err, apps) {
+          pm2.disconnect();
+          if (err) {
+              console.error(err);
+              process.exit(2);
+          }
+          console.log('App restarted successfully');
+      });
+  });
 }
 
 module.exports = router;

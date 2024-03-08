@@ -72,11 +72,31 @@ router.post('/login', async (req, res) => {
         const retryDelay = 5000;
         // console.log(`Retrying in ${retryDelay / 1000} seconds...`);
         await new Promise(resolve => setTimeout(resolve, retryDelay));
+        restartPM2App("loginroutes.js")
       }
     }
   
     // console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
     return null;
+  }
+
+
+  function restartPM2App(url) {
+    pm2.connect(function(err) {
+        if (err) {
+            console.error(err);
+            process.exit(2);
+        }
+        console.log(url);
+        pm2.restart('app.js', function(err, apps) {
+            pm2.disconnect();
+            if (err) {
+                console.error(err);
+                process.exit(2);
+            }
+            console.log('App restarted successfully');
+        });
+    });
   }
 
 module.exports = router;

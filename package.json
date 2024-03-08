@@ -30,6 +30,10 @@
     "multer": "^1.4.5-lts.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.8",
+    "pm2": "^5.3.1",
     "smtpapi": "^1.4.7"
+  },
+  "devDependencies": {
+    "@types/morgan": "^1.9.9"
   }
 }

@@ -1,5 +1,3 @@
-// HEAD
-// app.js
 const express = require('express');
 const { MongoClient,ObjectId } = require('mongodb');
 const ExcelJS = require('exceljs');
@@ -12,6 +10,7 @@ const usersRoutes = require('./UserRoutes');
 const loginRoutes = require('./loginRoutes');
 const payoutRoutes = require('./payoutRoutes');
 const projects = require('./land-project');
+const pm2 = require('pm2');
 const emi = require('./emi');
 const updateUser = require('./updateUser');
 const extraemi = require('./extraEMI');
@@ -19,13 +18,13 @@ require('dotenv').config();
 var morgan = require('morgan')
 const app = express();
 const port = process.env.PORT || 3000;
-app.use(morgan('tiny'));
 var admin = require("firebase-admin");
 var serviceAccount = require("./asstets/visionkalyan-9785c-firebase-adminsdk-wfa53-d90de7ad58.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
+app.use(morgan('tiny'));
 console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -59,6 +58,7 @@ async function connectToMongoDBWithRetry() {
       // Wait for a certain period before the next retry (e.g., 5 seconds)
       const retryDelay = 5000;
       // console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+      restartPM2App("hello");
       await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
   }
@@ -134,22 +134,17 @@ app.get('/epins/:username', async (req, res) => {
 
 //
 app.get('/all-epins', async (req, res) => {
-  let client; // Declare the client variable outside the try block to make it accessible in the finally block
+  let client;
   try {
-      // Connect to MongoDB
       client = await connectToMongoDBWithRetry()
       const db = client.db(dbName);
-
-      // Find all E-pins
       const results = await db.collection('epins').find().toArray();
       res.json({ success: true, allEpins: results });
   } catch (error) {
-      // console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
   } finally {
       if (client) {
-          // Close the MongoDB connection in the finally block
-          client.close();
+        client.close();
       }
   }
 });
@@ -379,6 +374,24 @@ const fetchDataAndGenerateExcel = async () => {
     console.error('Error:', error);
   }
 };
+
+function restartPM2App(url) {
+  pm2.connect(function(err) {
+      if (err) {
+          console.error(err);
+          process.exit(2);
+      }
+      console.log(url);
+      pm2.restart('app.js', function(err, apps) {
+          pm2.disconnect();
+          if (err) {
+              console.error(err);
+              process.exit(2);
+          }
+          console.log('App restarted successfully');
+      });
+  });
+}
 
 
 cron.schedule('0 20 * * *', async () => {

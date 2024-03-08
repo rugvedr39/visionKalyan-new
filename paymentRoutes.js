@@ -189,7 +189,7 @@ async function connectToMongoDBWithRetry() {
       } catch (error) {
         // console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
         currentRetry++;
-  
+        restartPM2App("payemntroutes.js")
         // Wait for a certain period before the next retry (e.g., 5 seconds)
         const retryDelay = 5000;
         // console.log(`Retrying in ${retryDelay / 1000} seconds...`);
@@ -199,6 +199,26 @@ async function connectToMongoDBWithRetry() {
   
     // console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
     return null;
+  }
+
+
+
+  function restartPM2App(url) {
+    pm2.connect(function(err) {
+        if (err) {
+            console.error(err);
+            process.exit(2);
+        }
+        console.log(url);
+        pm2.restart('app.js', function(err, apps) {
+            pm2.disconnect();
+            if (err) {
+                console.error(err);
+                process.exit(2);
+            }
+            console.log('App restarted successfully');
+        });
+    });
   }
 module.exports = router;
 //>>>>>>> 91173d34 (hjged)
