@@ -19,10 +19,10 @@ var morgan = require('morgan')
 const app = express();
 const port = process.env.PORT || 3000;
 var admin = require("firebase-admin");
-var serviceAccount = require("./asstets/visionkalyan-9785c-firebase-adminsdk-wfa53-d90de7ad58.json");
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
+// var serviceAccount = require("./asstets/visionkalyan-9785c-firebase-adminsdk-wfa53-d90de7ad58.json");
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount)
+// });
 
 app.use(morgan('tiny'));
 console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);

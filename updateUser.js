@@ -9,7 +9,7 @@ const { JWT } = require('google-auth-library');
 // MongoDB connection URL
 const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'VisionKalyan_New';
-const credentials = require('./asstets/visionkalyan-aee28f9bb9ac.json');
+// const credentials = require('./asstets/visionkalyan-aee28f9bb9ac.json');
 
 router.post('/upload/:userId', upload.single('image'), async (req, res) => {
   try {
