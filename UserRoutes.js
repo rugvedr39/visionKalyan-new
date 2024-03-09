@@ -272,6 +272,7 @@ router.post('/create-user', async (req, res) => {
                   activationDate: 1,
                   password: 1,
                   sponsorId: 1,
+                  serialNumber:1,
                   _id: 0
               }
           }).skip((page - 1) * pageSize).limit(pageSize).toArray();
