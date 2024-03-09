@@ -2,7 +2,6 @@ const express = require('express');
 const { MongoClient,ObjectId } = require('mongodb');
 const ExcelJS = require('exceljs');
 var cron = require('node-cron');
-const sgMail = require('@sendgrid/mail');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const paymentRoutes = require('./paymentRoutes');
@@ -19,17 +18,12 @@ var morgan = require('morgan')
 const app = express();
 const port = process.env.PORT || 3000;
 var admin = require("firebase-admin");
-// var serviceAccount = require("./asstets/visionkalyan-9785c-firebase-adminsdk-wfa53-d90de7ad58.json");
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount)
-// });
-
+const { sendFileMessage } = require('./whatsapp');
 app.use(morgan('tiny'));
-console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // Replace '*' with your specific origin
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
@@ -244,12 +238,7 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-
-
-
-
 const fetchDataAndGenerateExcel = async () => {
-  const url = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
   const dbName = 'VisionKalyan_New';
 
   try {
@@ -316,6 +305,7 @@ const fetchDataAndGenerateExcel = async () => {
     // Add data rows
     for (const userEntry of totalAmountsByUser) {
       const { userDetails, amount } = userEntry;
+      console.log(userDetails);
       const { name, bankDetails, panNumber } = userDetails;
 
       // Assuming bankDetails is an array with an object containing bank information
@@ -342,34 +332,14 @@ const fetchDataAndGenerateExcel = async () => {
     const excelFileName = `Payout_Summary_${currentDate}.xlsx`;
     await workbook.xlsx.writeFile(excelFileName);
 
-    const attachmentContent = fs.readFileSync(excelFileName, 'base64');
-    sgMail.setApiKey('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');
-
-    const msg = {
-          to: 'rugvedr39@gmail.com',
-          from: 'rugved.developer@gmail.com',
-          subject: 'Report From Vision Kalyan',
-          text: '',
-          attachments: [
-            {
-              content: attachmentContent,
-              filename: excelFileName,
-              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-              disposition: 'attachment',
-            },
-          ],
-        };
-
-        sgMail.send(msg)
-        .then(() => {
-          console.log('Email sent successfully');
-          fs.unlinkSync(excelFileName);
-        })
-        .catch((error) => {
-          console.error('Error sending email:', error.response.body);
-        });
-
-    console.log('Excel file generated successfully: TotalAmountsWithTDS.xlsx');
+    sendFileMessage("917276275559", excelFileName, excelFileName)
+    .then(() => {
+        fs.unlinkSync(excelFileName);
+        console.log('File deleted successfully');
+    })
+    .catch(error => {
+        console.error('Error sending file:', error);
+    });
   } catch (error) {
     console.error('Error:', error);
   }
@@ -394,7 +364,7 @@ function restartPM2App(url) {
 }
 
 
-cron.schedule('0 20 * * *', async () => {
+cron.schedule('0 23 * * *', async () => {
   console.log('Running cron job...');
   await fetchDataAndGenerateExcel();
   console.log('Cron job completed.');

@@ -261,7 +261,7 @@ router.post('/create-user', async (req, res) => {
           const db = client.db(dbName);
   
           const page = req.query.page || 1;
-          const pageSize = 200; // Adjust the page size as needed
+          const pageSize = 250; // Adjust the page size as needed
   
           const users = await db.collection('users').find({}, {
               projection: {

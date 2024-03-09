@@ -2,6 +2,7 @@
 const fs = require('fs');
 const { Client ,LocalAuth} = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
+const { MessageMedia } = require('whatsapp-web.js');
 
 
 const SESSION_FILE_PATH = './session.json';
@@ -45,4 +46,16 @@ async function sendMessage(number, message) {
     }
 }
 
-module.exports = { sendMessage };
+async function sendFileMessage(number, filePath, caption = '') {
+
+try{
+        const media = MessageMedia.fromFilePath(`./${filePath}`);
+        const chat = await client.getChatById(`${number}@c.us`);
+        await chat.sendMessage(media, { caption: caption });
+        console.log('File sent successfully!');
+    } catch (error) {
+        console.error('Error occurred while sending file:', error);
+    }
+}
+
+module.exports = { sendMessage, sendFileMessage };
