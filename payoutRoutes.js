@@ -141,7 +141,9 @@ router.post('/procced/paid', async (req, res) => {
     await payoutpaymentscollections.insertOne(req.body);
 
     const countryCode = '91';
-    const formattedNumber = user.phoneNumber.startsWith('+') ? `${countryCode}${user.phoneNumber.slice(1)}` : `${countryCode}${user.phoneNumber}`;
+    let phoneNumberString = String(user.phoneNumber); // Convert to string if it's not already
+    const formattedNumber = phoneNumberString.startsWith('+') ? `${countryCode}${phoneNumberString.slice(1)}` : `${countryCode}${phoneNumberString}`;
+    
     await sendMessage(formattedNumber, message);
 
     res.status(200).json({ data: 'Successful' });
