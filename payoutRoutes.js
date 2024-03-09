@@ -2,6 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
+const { sendMessage } = require('./whatsapp');
+
 
 const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'VisionKalyan_New';
@@ -143,7 +145,7 @@ router.post('/procced/paid', async (req, res) => {
     const countryCode = '91';
     let phoneNumberString = String(user.phoneNumber); // Convert to string if it's not already
     const formattedNumber = phoneNumberString.startsWith('+') ? `${countryCode}${phoneNumberString.slice(1)}` : `${countryCode}${phoneNumberString}`;
-    
+
     await sendMessage(formattedNumber, message);
 
     res.status(200).json({ data: 'Successful' });
