@@ -4,13 +4,14 @@
 const express = require('express');
 const router = express.Router();
 const { MongoClient,ObjectId } = require('mongodb');
+const { sendMessage } = require('./whatsapp');
 
 // MongoDB connection URL
 const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'VisionKalyan_New';
 
-const sdk = require('api')('@waapi/v1.0#ehy7f2rlp03cxd0');
-sdk.auth('t0wD644lvq413rmF02Hx2TRpdOhBTmsd6Z1KjmIM');
+// const sdk = require('api')('@waapi/v1.0#ehy7f2rlp03cxd0');
+// sdk.auth('t0wD644lvq413rmF02Hx2TRpdOhBTmsd6Z1KjmIM');
 
 const createEMIMessage = (recipientName, accountID) => {
   return `
@@ -129,12 +130,7 @@ router.post('/create-user', async (req, res) => {
       const message = createEMIMessage(newUser.name, newUser.username)
       const countryCode = '91';
     const formattedNumber = newUser.phoneNumber.startsWith('+') ? `${countryCode}${newUser.phoneNumber.slice(1)}` : `${countryCode}${newUser.phoneNumber}`;
-    // const formattedNumber = '918600988002';
-    const response = await sdk.postInstancesIdClientActionSendMessage({
-        chatId: `${formattedNumber}@c.us`,
-        message,
-      }, { id: '3177' });
-
+      await sendMessage(formattedNumber, message);
       client.close();
       res.json({ success: true, user: newUser });
   } catch (error) {

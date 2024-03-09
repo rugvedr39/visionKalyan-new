@@ -31,7 +31,9 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.8",
     "pm2": "^5.3.1",
-    "smtpapi": "^1.4.7"
+    "qrcode-terminal": "^0.12.0",
+    "smtpapi": "^1.4.7",
+    "whatsapp-web.js": "^1.23.0"
   },
   "devDependencies": {
     "@types/morgan": "^1.9.9"

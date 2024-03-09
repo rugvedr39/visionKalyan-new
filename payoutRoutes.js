@@ -6,9 +6,6 @@ const { MongoClient, ObjectId } = require('mongodb');
 const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'VisionKalyan_New';
 
-const sdk = require('api')('@waapi/v1.0#ehy7f2rlp03cxd0');
-sdk.auth('t0wD644lvq413rmF02Hx2TRpdOhBTmsd6Z1KjmIM');
-
 const createEMIMessage = (recipientName, accountID, pendingEMIAmount, bankAccount) => {
   return `
   Hi ${recipientName},
@@ -119,7 +116,7 @@ router.post('/procced/paid', async (req, res) => {
     const payoutpaymentscollections = db.collection('RecentPayments');
     let user = await UsersCollection.findOne({ username: req.body.username });
 
-    // const message = createEMIMessage(user.name, user.username, req.body['Net Payable'], user.bankDetails?.accountNumber);
+    const message = createEMIMessage(user.name, user.username, req.body['Net Payable'], user.bankDetails?.accountNumber);
     const objectIdsToUpdate = req.body.ids.map(id => new ObjectId(id));
     // Update IndirectIncomeCollection
     await indirectIncomeCollection.updateMany(
@@ -143,12 +140,9 @@ router.post('/procced/paid', async (req, res) => {
     delete req.body.id;
     await payoutpaymentscollections.insertOne(req.body);
 
-    // const countryCode = '91';
-    // const formattedNumber = user.phoneNumber.startsWith('+') ? `${countryCode}${user.phoneNumber.slice(1)}` : `${countryCode}${user.phoneNumber}`;
-    // const response = await sdk.postInstancesIdClientActionSendMessage({
-    //   chatId: `${formattedNumber}@c.us`,
-    //   message,
-    // }, { id: '3177' });
+    const countryCode = '91';
+    const formattedNumber = user.phoneNumber.startsWith('+') ? `${countryCode}${user.phoneNumber.slice(1)}` : `${countryCode}${user.phoneNumber}`;
+    await sendMessage(formattedNumber, message);
 
     res.status(200).json({ data: 'Successful' });
   } catch (error) {
