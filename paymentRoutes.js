@@ -146,20 +146,20 @@ async function connectToMongoDBWithRetry() {
 
 
   const createEMIMessage = (accountID, name) => {
-    return `
-    Hi ${name},
+    return `नमस्ते ${name} जी,
 
-    I am delighted to inform you that we have received your EMI payment for the account with ID ${accountID}. Your prompt action is greatly appreciated, and I wanted to take a moment to express our gratitude.
+आपको सूचित करते हुए मुझे बड़ी खुशी हो रही है कि हमें आपके खाते में आपके EMI भुगतान प्राप्त हो गया है। आपका त्वरित कार्रवाई के लिए हम आपकी बहुत कृतज्ञता व्यक्त करना चाहते हैं, और मैं इस अवसर पर एक पल बिताना चाहता हूं।
 
-    Please find the details below:
-    - Account ID: ${accountID}
+नीचे विवरण दिए गए हैं:
+- खाता आईडी: ${accountID}
 
-    Your cooperation helps us maintain smooth operations and ensures that your account remains in good standing.
+आपका सहयोग हमें संचालन को सहज रखने में मदद करता है और सुनिश्चित करता है कि आपका खाता अच्छी स्थिति में रहता है।
 
-    If you have any further questions or concerns, please don't hesitate to reach out. We're here to assist you.
-    Once again, thank you for your timely payment. We value your continued support and look forward to serving you in the future.
-    Best regards,
-    Vision Kalyan`;
+यदि आपके पास कोई और सवाल या चिंता है, तो कृपया हमें संपर्क करने में संकोच न करें। हम यहां आपकी सहायता के लिए हैं।
+एक बार फिर, आपके समय पर भुगतान के लिए धन्यवाद। हम आपके निरंतर समर्थन की मूल्यांकन करते हैं और भविष्य में आपकी सेवा करने के लिए उत्सुक हैं।
+
+शुभकामनाओं के साथ,
+विजन कल्याण`;
 };
   const makePayment = async (sponsorId, level, amount, username,indirectIncomeCollection) => {
     const now = new Date();
