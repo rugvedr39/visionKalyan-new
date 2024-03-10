@@ -10,6 +10,7 @@ const loginRoutes = require('./loginRoutes');
 const payoutRoutes = require('./payoutRoutes');
 const projects = require('./land-project');
 const pm2 = require('pm2');
+const { sendMessage } = require('./whatsapp');
 const emi = require('./emi');
 const updateUser = require('./updateUser');
 const extraemi = require('./extraEMI');
@@ -143,27 +144,6 @@ app.get('/all-epins', async (req, res) => {
   }
 });
 
-  app.get('/unpaid', async (req, res) => {
-    let client; // Declare the client variable outside the try block to make it accessible in the finally block
-    try {
-        // Connect to MongoDB
-        client =await connectToMongoDBWithRetry()
-        const db = client.db(dbName);
-
-        // Find all E-pins
-        const results = await db.collection('indirectIncomeCollection').updateMany({}, { $set: { status: 'unpaid' } });
-        res.json({ success: true, allEpins: results });
-    } catch (error) {
-        // console.error(error);
-        res.status(500).json({ success: false, error: 'Internal Server Error' });
-    } finally {
-        if (client) {
-            // Close the MongoDB connection in the finally block
-            client.close();
-        }
-    }
-});
-
 
 app.post('/send',async (req,res)=>{
   const receivedToken = req.body.fcmToken;
@@ -224,6 +204,17 @@ app.post('/send',async (req,res)=>{
     }
 
   })
+
+  app.post('/send-Whatsapp', async (req, res) => {
+    try {
+      const { number, message } = req.body;
+      await sendMessage(number, message);
+      res.status(200).json({ data: 'Successful Sent Message' });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      res.status(500).json({ error: 'Failed to send message' });
+    }
+  });
 
 app.use('/users',usersRoutes);
 app.use('/payments', paymentRoutes);

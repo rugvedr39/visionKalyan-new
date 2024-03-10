@@ -55,7 +55,7 @@ router.get('/getemibydate/:date', async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-  const client = new MongoClient(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+  const client = new MongoClient(mongoURL);
 
   try {
     await client.connect();
@@ -148,19 +148,6 @@ router.get('/', async (req, res) => {
       Vision Kalyan`;
     };
 
-    for (let index = 0; index < result.length; index++) {
-      try{
-        const countryCode = '91';
-        const formattedNumber = result[index].phone.startsWith('+') ? `${countryCode}${result[index].phone.slice(1)}` : `${countryCode}${result[index].phone}`;
-        // const formattedNumber = '918600988002';
-        let message = createEMIMessage(result[index].name, result[index].username, 2000).toString();
-          // await sendMessage(formattedNumber, message);
-
-      }catch(e){
-        console.log(e);
-      }
-
-    }
     res.status(200).json(result);
   } catch (error) {
     console.error(error);
