@@ -61,94 +61,38 @@ router.get('/', async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
 
-    // Extract months and years from the date field and filter out non-current data
-    const nonCurrentPayments1 = await db.collection(paymentsCollection).find().toArray();
-    let filteredData = nonCurrentPayments1.map((payment) => {
-      const date = new Date(payment.date);
-      return {
-        _id: payment._id,
-        username: payment.username,
-        date: date,
-        month: date.getMonth() + 1, // Adding 1 because months are zero-based
-        year: date.getFullYear()
-      };
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+
+    // Find distinct usernames from payments collection for the current month
+    const usersWithPayments = await db.collection('payments').distinct('username', {
+      date: {
+        $gte: new Date(currentYear, currentMonth - 1, 1), // Start of current month
+        $lt: new Date(currentYear, currentMonth, 1) // Start of next month
+      }
     });
 
-    filteredData = filteredData.filter((payment) => {
-      const currentMonth = new Date().getMonth() + 1; // Adding 1 because months are zero-based
-      const currentYear = new Date().getFullYear();
-      return payment.month !== currentMonth || payment.year !== currentYear;
-    });
-
-    // Find distinct usernames
-    const distinctUsernames = [...new Set(filteredData.map((payment) => payment.username))];
-
-    // Use $lookup to get phone number from the 'users' collection
-    const result = await db.collection(paymentsCollection).aggregate([
+    // Define the aggregation pipeline for users without payments for the current month
+    const usersWithoutPaymentsPipeline = [
       {
         $match: {
-          username: { $in: distinctUsernames },
-        },
-      },
-      {
-        $group: {
-          _id: "$username",
-          userDetails: { $first: "$$ROOT" }
+          username: { $nin: usersWithPayments }
         }
-      },
-      {
-        $replaceRoot: { newRoot: "$userDetails" }
-      },
-      {
-        $lookup: {
-          from: usersCollection,
-          localField: 'username',
-          foreignField: 'username',
-          as: 'userDetails',
-        },
-      },
-      {
-        $unwind: '$userDetails',
       },
       {
         $project: {
           _id: 1,
           username: 1,
-          name: '$userDetails.name',
-          phone: '$userDetails.phoneNumber', // Assuming the field in 'users' collection is 'phoneNumber'
-        },
-      },
-      {
-        $match: {
-          $or: [
-            { month: { $ne: new Date().getMonth() + 1 } },
-            { year: { $ne: new Date().getFullYear() } },
-          ],
-        },
-      },
-    ]).toArray();
+          name: 1,
+          phoneNumber: 1
+        }
+      }
+    ];
 
-    const createEMIMessage = (recipientName, accountID, pendingEMIAmount) => {
-      return `
-      Hi ${recipientName},
+    // Aggregate users collection
+    const usersWithoutPayments = await db.collection('users').aggregate(usersWithoutPaymentsPipeline).toArray();
 
-      I wanted to bring to your attention that we have noticed that the EMI for your account with ID ${accountID} is pending for this month. We kindly request you to make the payment at your earliest convenience to avoid any inconvenience.
-
-      Please find the details below:
-      - Account ID: ${accountID}
-      - Pending EMI Amount: ${pendingEMIAmount}
-
-      You can make the payment through Our Website to the following account:
-
-      If you have already made the payment, please disregard this message.
-
-      Thank you for your prompt attention to this matter. Feel free to reach out if you have any questions or concerns.
-
-      Best regards,
-      Vision Kalyan`;
-    };
-
-    res.status(200).json(result);
+    res.status(200).json(usersWithoutPayments);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -156,6 +100,8 @@ router.get('/', async (req, res) => {
     await client.close();
   }
 });
+
+
 
 
 
