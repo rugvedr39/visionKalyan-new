@@ -3,22 +3,13 @@
 
 const express = require('express');
 const router = express.Router();
-const { MongoClient } = require('mongodb');
 const { sendMessage } = require('./whatsapp.js');
+const { connectToMongoDB } = require('./db');
 
-// MongoDB connection URL
-const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
-const dbName = 'VisionKalyan_New';
-
-// Create a new payment
 router.post('/add', async (req, res) => {
-    let client;
     try {
         const { username, date } = req.body;
-
-        // Connect to MongoDB
-        client = await connectToMongoDBWithRetry();
-        const db = client.db(dbName);
+        const db = await connectToMongoDB();
         const UsersCollection = db.collection('users');
         const indirectIncomeCollectionName = 'indirectIncomeCollection';
         const indirectIncomeCollection = db.collection(indirectIncomeCollectionName);
@@ -48,11 +39,6 @@ router.post('/add', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, error: 'Internal Server Error' });
-    } finally {
-        if (client) {
-            // Close the MongoDB connection in the finally block
-            client.close();
-        }
     }
 });
 
@@ -61,89 +47,28 @@ router.get('/payment/:username', async (req, res) => {
   let client;
   try {
       const username = req.params.username;
-      // Connect to MongoDB
-      client =await connectToMongoDBWithRetry()
-      const db = client.db(dbName);
+      const db = await connectToMongoDB();
       // Retrieve payments from the 'payments' collection
       const result = await db.collection('payments').find({ username }).toArray();
       res.json({ success: true, payment: result });
   } catch (error) {
-    //   console.error(error);
+      console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
-  } finally {
-      if (client) {
-          client.close();
-      }
-  }
+  } 
 });
 
 //
 router.get('/income/:username', async (req, res) => {
-  let client;
   try {
       const username = req.params.username;
-      // Connect to MongoDB
-      client = await connectToMongoDBWithRetry()
-      const db = client.db(dbName);
-      // Retrieve income from the 'indirectIncomeCollection' collection
+      const db = await connectToMongoDB();
       const result = await db.collection('indirectIncomeCollection').find({ username }).toArray();
       res.json({ success: true, payment: result });
   } catch (error) {
-    //   console.error(error);
+      console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
-  } finally {
-      if (client) {
-          // Close the MongoDB connection in the finally block
-          client.close();
-      }
   }
 });
-
-
-async function connectToMongoDBWithRetry() {
-    const maxRetries = 100; // Adjust the number of retries as needed
-    let currentRetry = 0;
-  
-    while (currentRetry < maxRetries) {
-      try {
-        // Connect to MongoDB
-        const client = await MongoClient.connect(mongoURL);
-        return client;
-      } catch (error) {
-        // console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
-        currentRetry++;
-        restartPM2App("payemntroutes.js")
-        // Wait for a certain period before the next retry (e.g., 5 seconds)
-        const retryDelay = 5000;
-        // console.log(`Retrying in ${retryDelay / 1000} seconds...`);
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-      }
-    }
-  
-    // console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
-    return null;
-  }
-
-
-
-  function restartPM2App(url) {
-    pm2.connect(function(err) {
-        if (err) {
-            console.error(err);
-            process.exit(2);
-        }
-        console.log(url);
-        pm2.restart('app.js', function(err, apps) {
-            pm2.disconnect();
-            if (err) {
-                console.error(err);
-                process.exit(2);
-            }
-            console.log('App restarted successfully');
-        });
-    });
-  }
-
 
   const createEMIMessage = (accountID, name) => {
     return `नमस्ते ${name} जी,
@@ -190,10 +115,10 @@ const processLevelPayments = async (sponsorId, username,UsersCollection,indirect
                 await makePayment(sponsorId, level, amount, username,indirectIncomeCollection);
                 sponsorId = (await UsersCollection.findOne({ username: sponsorId })).sponsorId;
             } else {
-                break; // No need to proceed further if 15 payments reached for this level
+                break;
             }
         } else {
-            break; // Break if no sponsor or reached the final level
+            break;
         }
     }
 };

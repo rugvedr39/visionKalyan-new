@@ -5,6 +5,7 @@ const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const { MongoClient, ObjectId } = require('mongodb');
 const { JWT } = require('google-auth-library');
+const { connectToMongoDB } = require('./db');
 
 // MongoDB connection URL
 const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
@@ -41,21 +42,12 @@ router.post('/upload/:userId', upload.single('image'), async (req, res) => {
       fileId: driveRes.data.id,
       fields: 'webViewLink',
     });
-
-    // Delete the temporary file
     require('fs').unlinkSync(req.file.path);
-
     const userId = req.params.userId;
-
-    // Connect to MongoDB
-    const client = await MongoClient.connect(mongoURL);
-    const db = client.db(dbName);
-
-    // Fetch the current user data
+    const db = await connectToMongoDB();
     const currentUser = await db.collection('users').findOne({ _id: new ObjectId(userId) });
 
     if (!currentUser) {
-      client.close();
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
@@ -72,16 +64,13 @@ router.post('/upload/:userId', upload.single('image'), async (req, res) => {
       { _id: new ObjectId(userId) },
       { $set: currentUser }
     );
-
-    client.close();
-
     if (result.modifiedCount > 0) {
       res.json({ success: true, message: 'User updated successfully' });
     } else {
       res.status(404).json({ success: false, message: 'User not found' });
     }
   } catch (error) {
-    // console.error(error);
+    console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

@@ -1,18 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { MongoClient, ObjectId } = require('mongodb');
-
-// MongoDB connection URL
-const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
-const dbName = 'VisionKalyan_New';
+const { connectToMongoDB } = require('./db');
 const extraemicollections = 'ExtraEMICollections';
 
 // Function to connect to MongoDB
-async function connectToMongoDB() {
-  const client = new MongoClient(mongoURL);
-  await client.connect();
-  return client.db(dbName);
-}
 
 router.get('/:username', async function (req, res) {
   try {
@@ -26,7 +17,7 @@ router.get('/:username', async function (req, res) {
     
     res.json(userData);
   } catch (error) {
-    // console.error(error);
+    console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -44,7 +35,7 @@ router.post('/:username', async function (req, res) {
 
     res.json({ success: true });
   } catch (error) {
-    // console.error(error);
+    console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -52,22 +43,14 @@ router.post('/delete/:username', async function (req, res) {
     try {
       const username = req.params.username;
       const  amountToSubtract  = req.body.amount;
-  
-      // Connect to MongoDB
       const db = await connectToMongoDB();
-
-      // Find user collections
       const userCollections = await db.collection(extraemicollections).find({ username }).toArray();
-  
-      // Calculate remaining amount and update collections
+
       let remainingAmount = amountToSubtract;
   
       for (const userCollection of userCollections) {
         const collectionId = userCollection._id;
-        const collectionAmount = userCollection.amount || 0; // Ensure a default value
-        // console.log('remaining amount:'+remainingAmount);
-        // console.log('collectionAmount:'+collectionAmount);
-  
+        const collectionAmount = userCollection.amount || 0;
         if (remainingAmount >= collectionAmount) {
           // Remove the entire collection
           // console.log('colledction ID:'+collectionId);

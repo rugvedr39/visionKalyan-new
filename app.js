@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient,ObjectId } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const ExcelJS = require('exceljs');
 var cron = require('node-cron');
 const fs = require('fs');
@@ -9,7 +9,6 @@ const usersRoutes = require('./UserRoutes');
 const loginRoutes = require('./loginRoutes');
 const payoutRoutes = require('./payoutRoutes');
 const projects = require('./land-project');
-const pm2 = require('pm2');
 const { sendMessage } = require('./whatsapp');
 const emi = require('./emi');
 const updateUser = require('./updateUser');
@@ -23,6 +22,7 @@ const { sendFileMessage } = require('./whatsapp');
 app.use(morgan('tiny'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+const { connectToMongoDB } = require('./db');
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -31,45 +31,10 @@ app.use((req, res, next) => {
 });
 
 
-// MongoDB connection URL
-const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
-const dbName = 'VisionKalyan_New';
-const client = new MongoClient(mongoURL);
-
-
-async function connectToMongoDBWithRetry() {
-  const maxRetries = 100; // Adjust the number of retries as needed
-  let currentRetry = 0;
-
-  while (currentRetry < maxRetries) {
-    try {
-      // Connect to MongoDB
-      const client = await MongoClient.connect(mongoURL);
-      return client;
-    } catch (error) {
-      // console.error(`Error connecting to MongoDB (Attempt ${currentRetry + 1}/${maxRetries}):`, error);
-      currentRetry++;
-
-      // Wait for a certain period before the next retry (e.g., 5 seconds)
-      const retryDelay = 5000;
-      // console.log(`Retrying in ${retryDelay / 1000} seconds...`);
-      restartPM2App("hello");
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
-    }
-  }
-
-  // console.error(`Max retries (${maxRetries}) reached. Unable to establish MongoDB connection.`);
-  return null;
-}
-
 app.post('/generate-epins', async (req, res) => {
-  let client // Declare the client variable outside the try block to make it accessible in the finally block
   try {
       const { userId, count } = req.body;
-
-      // Connect to MongoDB
-      client = await connectToMongoDBWithRetry()
-      const db = client.db(dbName);
+      const db = await connectToMongoDB();
 
       // Generate unique E-pins
       const generatedPins = [];
@@ -80,7 +45,6 @@ app.post('/generate-epins', async (req, res) => {
           }
       }
 
-      // Update or insert E-pins without checking if the user already has an E-pin
       await db.collection('epins').updateOne(
           { userId },
           { $addToSet: { pins: { $each: generatedPins } } },
@@ -89,25 +53,17 @@ app.post('/generate-epins', async (req, res) => {
 
       res.json({ success: true, epins: generatedPins });
   } catch (error) {
-      // console.error(error);
+      console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
-  } finally {
-      if (client) {
-          // Close the MongoDB connection in the finally block
-          client.close();
-      }
   }
 });
 
 
 //
 app.get('/epins/:username', async (req, res) => {
-  let client; // Declare the client variable outside the try block to make it accessible in the finally block
   try {
       const username = req.params.username;
-      // Connect to MongoDB
-      client = await connectToMongoDBWithRetry()
-      const db = client.db(dbName);
+      const db = await connectToMongoDB();
 
       // Find E-pins for the given username
       const result = await db.collection('epins').findOne({ userId: username });
@@ -117,30 +73,19 @@ app.get('/epins/:username', async (req, res) => {
           res.status(404).json({ success: false, message: 'E-pins not found for the specified user' });
       }
   } catch (error) {
-      // console.error(error);
+      console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
-  } finally {
-      if (client) {
-          // Close the MongoDB connection in the finally block
-          client.close();
-      }
   }
 });
 
 //
 app.get('/all-epins', async (req, res) => {
-  let client;
   try {
-      client = await connectToMongoDBWithRetry()
-      const db = client.db(dbName);
+      const db = await connectToMongoDB()
       const results = await db.collection('epins').find().toArray();
       res.json({ success: true, allEpins: results });
   } catch (error) {
       res.status(500).json({ success: false, error: 'Internal Server Error' });
-  } finally {
-      if (client) {
-        client.close();
-      }
   }
 });
 
@@ -164,11 +109,8 @@ app.post('/send',async (req,res)=>{
 
   app.get('/topusers', async (req, res) => {
     try {
-      const client = await connectToMongoDBWithRetry()
-      const db = client.db(dbName);
-  
+      const db = await connectToMongoDB()
       const excludedUsernames = ['VK24496086', 'VK53912943'];
-
       const topUsers = await db.collection('users').aggregate([
         {
           $match: {
@@ -196,13 +138,9 @@ app.post('/send',async (req,res)=>{
         { $limit: 10 },
       ]).toArray();
       res.json({ success: true, topUsers: topUsers });
-      client.close();
     } catch (error) {
       console.error('Error:', error);
-    } finally {
-      await client.close();
     }
-
   })
 
   app.post('/send-Whatsapp', async (req, res) => {
@@ -230,12 +168,8 @@ app.listen(port, () => {
 });
 
 const fetchDataAndGenerateExcel = async () => {
-  const dbName = 'VisionKalyan_New';
-
   try {
-    // Connect to the MongoDB database
-    const client = await connectToMongoDBWithRetry()
-    const db = client.db(dbName);
+    const db = await connectToMongoDB();
 
     // Fetch all unpaid income
     const indirectIncomeCollectionName = 'indirectIncomeCollection';
@@ -283,7 +217,6 @@ const fetchDataAndGenerateExcel = async () => {
       ids:entry.ids,
       "Date": new Date()
     }));
-    // Close the database connection
 
 
     // Generate Excel file
@@ -316,10 +249,8 @@ const fetchDataAndGenerateExcel = async () => {
       { _id: { $in: objectIdsToUpdate } },
       { $set: { status: 'Payment Under Process' } }
       );
-      await client.close();
 
-
-    const currentDate = new Date().toLocaleDateString('en-GB').replace(/\//g, '_');  
+    const currentDate = new Date().toLocaleDateString('en-GB').replace(/\//g, '_');
     const excelFileName = `Payout_Summary_${currentDate}.xlsx`;
     await workbook.xlsx.writeFile(excelFileName);
 
@@ -329,31 +260,12 @@ const fetchDataAndGenerateExcel = async () => {
         console.log('File deleted successfully');
     })
     .catch(error => {
-        console.error('Error sending file:', error);
+      console.error('Error sending file:', error);
     });
   } catch (error) {
     console.error('Error:', error);
   }
 };
-
-function restartPM2App(url) {
-  pm2.connect(function(err) {
-      if (err) {
-          console.error(err);
-          process.exit(2);
-      }
-      console.log(url);
-      pm2.restart('app.js', function(err, apps) {
-          pm2.disconnect();
-          if (err) {
-              console.error(err);
-              process.exit(2);
-          }
-          console.log('App restarted successfully');
-      });
-  });
-}
-
 
 cron.schedule('0 23 * * *', async () => {
   console.log('Running cron job...');

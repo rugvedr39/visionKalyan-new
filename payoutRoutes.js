@@ -3,10 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const { sendMessage } = require('./whatsapp');
-
-
-const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
-const dbName = 'VisionKalyan_New';
+const { connectToMongoDB } = require('./db');
 
 const createEMIMessage = (recipientName, accountID, pendingEMIAmount, bankAccount) => {
   return `
@@ -29,12 +26,7 @@ Vision Kalyan`;
 // Fetch payout details
 router.get('/payoutdetails', async (req, res) => {
   try {
-    const client = await connectToMongoDBWithRetry();
-    if (!client) {
-      return res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-
-    const db = client.db(dbName);
+    const db = await connectToMongoDB();
 
     // Fetch all unpaid income
     const indirectIncomeCollectionName = 'indirectIncomeCollection';
@@ -69,18 +61,14 @@ router.get('/payoutdetails', async (req, res) => {
 
     res.status(200).json({ totalAmountsByUser, unpaidIds });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
 
 router.post('/procced', async (req, res) => {
   try {
-    const client = await connectToMongoDBWithRetry();
-    if (!client) {
-      return res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-
-    const db = client.db(dbName);
+    const db =  await connectToMongoDB();
     await db.collection('PaymentProccedDetails').insertOne(req.body);
     const objectIdsToUpdate = req.body.unpaidIds.map(id => new ObjectId(id));
     await db.collection('indirectIncomeCollection').updateMany(
@@ -89,29 +77,25 @@ router.post('/procced', async (req, res) => {
     );
     res.json({ success: true, message: 'Payments Procced' });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
 
 router.get('/get/procced', async (req, res) => {
   try {
-    const client = await connectToMongoDBWithRetry();
-    if (!client) {
-      return res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-
-    const db = client.db(dbName);
+    const db =  await connectToMongoDB();
     const result = await db.collection('PaymentProccedDetails').find().toArray();
     res.json({ success: true, data: result });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
 
 router.post('/procced/paid', async (req, res) => {
   try {
-    const client = await connectToMongoDBWithRetry();
-    const db = client.db(dbName);
+    const db =  await connectToMongoDB();
     const PaymentProccedDetailsCollection = db.collection('PaymentProccedDetails');
     const UsersCollection = db.collection('users');
     const indirectIncomeCollection = db.collection('indirectIncomeCollection');
@@ -157,18 +141,14 @@ router.post('/procced/paid', async (req, res) => {
 
 router.get('/payment/done-get', async (req, res) => {
   try {
-    const client = await connectToMongoDBWithRetry();
-    if (!client) {
-      return res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-
-    const db = client.db(dbName);
+    const db =  await connectToMongoDB();
     const payoutpaymentscollections = db.collection('RecentPayments');
 
     const result = await payoutpaymentscollections.find().toArray();
 
     res.status(200).json({ data: result });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
@@ -176,58 +156,14 @@ router.get('/payment/done-get', async (req, res) => {
 router.get('/payment/payout/:username', async (req, res) => {
   const username = req.params.username;
   try {
-    const client = await connectToMongoDBWithRetry();
-    if (!client) {
-      return res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-
-    const db = client.db(dbName);
+    const db =  await connectToMongoDB();
     const payoutpaymentscollections = db.collection('RecentPayments');
     const result = await payoutpaymentscollections.find({ username }).toArray();
     res.status(200).json({ success: true, data: result });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
-
-async function connectToMongoDBWithRetry() {
-  const maxRetries = 100; // Adjust the number of retries as needed
-  let currentRetry = 0;
-
-  while (currentRetry < maxRetries) {
-    try {
-      // Connect to MongoDB
-      const client = await MongoClient.connect(mongoURL);
-      return client;
-    } catch (error) {
-      currentRetry++;
-      restartPM2App("payoutRoutes.js")
-      // Wait for a certain period before the next retry (e.g., 5 seconds)
-      const retryDelay = 5000;
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
-    }
-  }
-
-  return null;
-}
-
-
-function restartPM2App(url) {
-  pm2.connect(function(err) {
-      if (err) {
-          console.error(err);
-          process.exit(2);
-      }
-      console.log(url);
-      pm2.restart('app.js', function(err, apps) {
-          pm2.disconnect();
-          if (err) {
-              console.error(err);
-              process.exit(2);
-          }
-          console.log('App restarted successfully');
-      });
-  });
-}
 
 module.exports = router;
