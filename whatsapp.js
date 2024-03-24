@@ -1,9 +1,34 @@
-// sendMessage.js
 const fs = require('fs');
-const { Client ,LocalAuth} = require('whatsapp-web.js');
+const { Client,RemoteAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const { MessageMedia } = require('whatsapp-web.js');
+const { MongoStore } = require('wwebjs-mongo');
+const mongoose = require('mongoose');
 
+const mongoURL = 'mongodb+srv://kalyanvision381:uykt2riskUeq2LIj@cluster0.9wscwrp.mongodb.net/?retryWrites=true&w=majority';
+mongoose.connect(mongoURL).then(() => {
+    const store = new MongoStore({ mongoose: mongoose });
+    const client = new Client({
+        authStrategy: new RemoteAuth({
+            store: store,
+            backupSyncIntervalMs: 300000
+        })
+    });
+
+    client.initialize();
+    client.on('qr', (qr) => {
+        console.log('Scan the QR code:');
+        qrcode.generate(qr, { small: true });
+    });
+    
+    client.on('authenticated', (session) => {
+        console.log('AUTHENTICATED');
+    });
+    
+    client.on('ready', () => {
+        console.log('Client is ready!');
+    });
+});
 
 const SESSION_FILE_PATH = './session.json';
 
@@ -11,31 +36,6 @@ let sessionCfg;
 if (fs.existsSync(SESSION_FILE_PATH)) {
     sessionCfg = require(SESSION_FILE_PATH);
 }
-
-const client = new Client({
-    authStrategy: new LocalAuth({
-    clientId: "client-one"
-    }),
-    puppeteer: { headless: true },
-    // session: sessionCfg
-    })
-
-client.on('qr', (qr) => {
-    // Display the QR code in the terminal
-    console.log('Scan the QR code:');
-    qrcode.generate(qr, { small: true });
-});
-
-client.on('authenticated', (session) => {
-    console.log('AUTHENTICATED');
-});
-
-client.on('ready', () => {
-    console.log('Client is ready!');
-});
-
-client.initialize();
-
 async function sendMessage(number, message) {
     try {
         const chat = await client.getChatById(`${number}@c.us`);
@@ -47,8 +47,7 @@ async function sendMessage(number, message) {
 }
 
 async function sendFileMessage(number, filePath, caption = '') {
-
-try{
+    try {
         const media = MessageMedia.fromFilePath(`./${filePath}`);
         const chat = await client.getChatById(`${number}@c.us`);
         await chat.sendMessage(media, { caption: caption });

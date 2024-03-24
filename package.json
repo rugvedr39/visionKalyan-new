@@ -33,7 +33,8 @@
     "pm2": "^5.3.1",
     "qrcode-terminal": "^0.12.0",
     "smtpapi": "^1.4.7",
-    "whatsapp-web.js": "^1.23.0"
+    "whatsapp-web.js": "^1.23.0",
+    "wwebjs-mongo": "^1.1.0"
   },
   "devDependencies": {
     "@types/morgan": "^1.9.9"
