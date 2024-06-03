@@ -15,7 +15,7 @@ router.post('/login', async (req, res) => {
           const downlineWithNames = await Promise.all(user.downline.map(async (downlineItem) => {
               const { userId, ...rest } = downlineItem;
               const downlineUser = await db.collection('users').findOne({ _id: new ObjectId(userId) });
-              const name = downlineUser ? downlineUser.name : 'Unknown'; // Default to 'Unknown' if user not found
+              const name = downlineUser ? downlineUser.name : 'Unknown';
               return { ...rest, name };
           }));
           user.downline = downlineWithNames;
@@ -26,7 +26,6 @@ router.post('/login', async (req, res) => {
   } catch (error) {
       console.error(error);
       res.status(500).json({ success: false, error: 'Internal Server Error' });
-  } 
-  
+  }
 });
 module.exports = router;

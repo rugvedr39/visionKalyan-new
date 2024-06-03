@@ -141,17 +141,58 @@ router.post('/procced/paid', async (req, res) => {
 
 router.get('/payment/done-get', async (req, res) => {
   try {
-    const db =  await connectToMongoDB();
-    const payoutpaymentscollections = db.collection('RecentPayments');
+    const db = await connectToMongoDB();
+    const payoutPaymentsCollections = db.collection('RecentPayments');
 
-    const result = await payoutpaymentscollections.find().toArray();
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1); // Ensure page is at least 1
+    const limit = Math.max(parseInt(req.query.limit, 10) || 20, 1); // Ensure limit is at least 1
+    const searchTerm = req.query.search || '';
+    const skip = (page - 1) * limit;
 
-    res.status(200).json({ data: result });
+
+    console.log('Page:', page, 'Limit:', limit);
+
+    const query = searchTerm
+    ? {
+        $or: [
+          { Name: { $regex: searchTerm, $options: 'i' } },
+          { 'Bank Name': { $regex: searchTerm, $options: 'i' } },
+          { 'Bank IFSC Code': { $regex: searchTerm, $options: 'i' } },
+          { 'Bank Account Number': { $regex: searchTerm, $options: 'i' } },
+          { 'PAN Number': { $regex: searchTerm, $options: 'i' } },
+          { 'Total Income': { $regex: searchTerm, $options: 'i' } },
+          { TDS: { $regex: searchTerm, $options: 'i' } },
+          { 'Net Payable': { $regex: searchTerm, $options: 'i' } }
+        ]
+      }
+    : {};
+
+    const result = await payoutPaymentsCollections
+      .find(query)
+      .sort({ _id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+    const totalItems = await payoutPaymentsCollections.countDocuments();
+    res.status(200).json({ 
+      data: result,
+      pagination: {
+        currentPage: page,
+        itemsPerPage: limit,
+        totalItems: totalItems,
+        totalPages: Math.ceil(totalItems / limit)
+      }
+    });
+
+    console.log('Result Length:', result.length);
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
+
+
+
 
 router.get('/payment/payout/:username', async (req, res) => {
   const username = req.params.username;

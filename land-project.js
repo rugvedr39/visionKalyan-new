@@ -56,7 +56,6 @@ router.put('/lands/:id', async (req, res) => {
 router.delete('/lands/:id', async (req, res) => {
   try {
     const db = await connectToMongoDB();
-    
     const result = await db.collection(collectionName).deleteOne({ _id: ObjectId(req.params.id) });
 
     if (result.deletedCount === 0) {

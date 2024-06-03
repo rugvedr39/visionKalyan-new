@@ -126,15 +126,13 @@ router.post('/create-user', async (req, res) => {
   }
 });
 
-      
     // Function to validate if the sponsor ID exists
     async function validateSponsorId(db, sponsorId) {
         // Check if the sponsorId exists in the users collection
         const existingUser = await db.collection('users').findOne({ username: sponsorId });
         return existingUser ? true : false;
       }
-    
-    
+
       // Function to update downline levels recursively
       async function updateDownlineLevels(db, sponsorId, username, level, userId) {
         const now = new Date();
@@ -176,40 +174,51 @@ router.post('/create-user', async (req, res) => {
             throw error;
         }
     }
-    
 
 
-    router.get('/get-all-users', async (req, res) => {
-      try {
-          const db = await connectToMongoDB();
-  
-          const page = req.query.page || 1;
-          const pageSize = 250; // Adjust the page size as needed
-  
-          const users = await db.collection('users').find({}, {
-              projection: {
-                  username: 1,
-                  name: 1,
-                  phoneNumber: 1,
-                  createdAt: 1,
-                  activationDate: 1,
-                  password: 1,
-                  sponsorId: 1,
-                  serialNumber:1,
-                  _id: 0
-              }
-          }).skip((page - 1) * pageSize).limit(pageSize).toArray();
-          res.json({ success: true, users });
-      } catch (error) {
-          console.error(error);
-          res.status(500).json({ success: false, error: 'Internal Server Error' });
-      }
-  });
+router.get('/get-all-users', async (req, res) => {
+  try {
+      const db = await connectToMongoDB();
+      const page = parseInt(req.query.page) || 1;
+      const pageSize = 50;
+      const searchTerm = req.query.search || '';
+
+      const query = searchTerm
+        ? {
+            $or: [
+              { username: { $regex: searchTerm, $options: 'i' } },
+              { name: { $regex: searchTerm, $options: 'i' } },
+              { phoneNumber: { $regex: searchTerm, $options: 'i' } }
+            ]
+          }
+        : {};
+
+      const users = await db.collection('users').find(query, {
+          projection: {
+              username: 1,
+              name: 1,
+              phoneNumber: 1,
+              createdAt: 1,
+              activationDate: 1,
+              password: 1,
+              sponsorId: 1,
+              serialNumber: 1,
+              _id: 0
+          }
+      }).skip((page - 1) * pageSize).limit(pageSize).toArray();
+      
+      const totalItems = await db.collection('users').countDocuments(query);
+
+      res.json({ success: true, users, totalItems, totalPages: Math.ceil(totalItems / pageSize) });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+});
 
     router.get('/countUsers', async (req, res) => {
         try {
             const db = await connectToMongoDB();
-    
             const user = await  db.collection('users').countDocuments()
             res.json({ success: true, user });
         } catch (error) {
@@ -222,7 +231,6 @@ router.post('/create-user', async (req, res) => {
       const username = req.params.username;
       try {
           const db = await connectToMongoDB();
-  
           const user = await  db.collection('users').findOne({username: username});
           res.json({ success: true, user });
       } catch (error) {
@@ -237,12 +245,12 @@ router.post('/create-user', async (req, res) => {
 router.put('/update/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
-    const updateFields = req.body; 
+    const updateFields = req.body;
     const db = await connectToMongoDB();
 
     // Update the user by ID
     const result = await db.collection('users').updateOne(
-      { _id: new ObjectId(userId) }, 
+      { _id: new ObjectId(userId) },
       { $set: updateFields }
     );
     if (result.modifiedCount > 0) {
@@ -274,7 +282,7 @@ router.get('/achivers/:userId/:fromdate/:todate', async (req, res) => {
           $lt: toDateObject.toISOString()
         }
       })
-        .project({ username: 1, createdAt: 1 }) 
+        .project({ username: 1, createdAt: 1 })
         .toArray();
       res.status(200).json({ success: true, data: downlineCreatedAtData });
     } else {
@@ -282,6 +290,47 @@ router.get('/achivers/:userId/:fromdate/:todate', async (req, res) => {
     }
   } catch (error) {
     console.error('Error fetching achievers:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+});
+router.get('/upcoming-birthdays', async (req, res) => {
+  try {
+    const db = await connectToMongoDB();
+    const today = new Date();
+    const upcomingDays = 30; // Adjust this to get birthdays within the next 'n' days
+    const upcomingDate = new Date();
+    upcomingDate.setDate(today.getDate() + upcomingDays);
+
+    const users = await db.collection('users').find({
+      dob: {
+        $gte: today.toISOString().split('T')[0],
+        $lte: upcomingDate.toISOString().split('T')[0]
+      }
+    }, {
+      projection: {
+        name: 1,
+        phoneNumber: 1,
+        dob: 1,
+        _id: 0
+      }
+    }).toArray();
+
+    const formattedUsers = users.map(user => {
+      const dob = new Date(user.dob);
+      const day = dob.getDate().toString().padStart(2, '0');
+      const month = (dob.getMonth() + 1).toString().padStart(2, '0');
+      const year = dob.getFullYear();
+      const formattedDob = `${day}-${month}-${year}`;
+      return {
+        name: user.name,
+        phoneNumber: user.phoneNumber,
+        dob: formattedDob
+      };
+    });
+
+    res.json({ success: true, users: formattedUsers });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });

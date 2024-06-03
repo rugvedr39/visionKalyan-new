@@ -14,7 +14,6 @@ router.get('/:username', async function (req, res) {
 
     // Retrieve data by username
     const userData = await db.collection(extraemicollections).find({ username }).toArray();
-    
     res.json(userData);
   } catch (error) {
     console.error(error);
@@ -45,9 +44,7 @@ router.post('/delete/:username', async function (req, res) {
       const  amountToSubtract  = req.body.amount;
       const db = await connectToMongoDB();
       const userCollections = await db.collection(extraemicollections).find({ username }).toArray();
-
       let remainingAmount = amountToSubtract;
-  
       for (const userCollection of userCollections) {
         const collectionId = userCollection._id;
         const collectionAmount = userCollection.amount || 0;
@@ -65,12 +62,10 @@ router.post('/delete/:username', async function (req, res) {
           break;
         }
       }
-  
       res.json({ success: true });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  
 module.exports = router;
