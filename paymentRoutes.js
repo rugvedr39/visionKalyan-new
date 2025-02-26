@@ -20,21 +20,39 @@ router.post('/add', async (req, res) => {
         if (!existingUser) {
             return res.status(404).json({ success: false, message: 'Username not found' });
         }
-        const countryCode = '91';
-        const phoneNumberString = String(existingUser.phoneNumber);
-        const formattedNumber = phoneNumberString.startsWith('+') ? `${countryCode}${phoneNumberString.slice(1)}` : `${countryCode}${phoneNumberString}`;
+        // const countryCode = '91';
+        // const phoneNumberString = String(existingUser.phoneNumber);
+        // const formattedNumber = phoneNumberString.startsWith('+') ? `${countryCode}${phoneNumberString.slice(1)}` : `${countryCode}${phoneNumberString}`;
         
-        let message = createEMIMessage(username,existingUser.name).toString();
-        sendMessage(formattedNumber, message);
-
-
-        const sponsorId = (await db.collection('users').findOne({ username })).sponsorId;
+        // let message = createEMIMessage(username,existingUser.name).toString();
+        // sendMessage(formattedNumber, message);
 
         // Add payment to the 'payments' collection
         const result = await db.collection('payments').insertOne({ username, date });
 
         // Make indirect payments
-        await processLevelPayments(sponsorId, username,UsersCollection,indirectIncomeCollection);
+        // await processLevelPayments(sponsorId, username,UsersCollection,indirectIncomeCollection);
+
+        const paymentRecord = await collection.findOne({ EmiAmount: existingUser.EmiAmount });
+
+        if (!paymentRecord) {
+          return res.status(400).json({ error: "Invalid EMI Amount selected." });
+      }
+
+      const countPayment = await db.collection('indirectIncomeCollection').countDocuments({ username,level: 1,amount:existingUser.EmiAmount });
+
+        if (countPayment <= paymentRecord.times) {
+            let levelPaymentData = {
+                username: existingUser.sponsorId,
+                date: now.toLocaleString('en-US', options),
+                level: 1,
+                amount: paymentRecord.sposerAmount, 
+                whos: existingUser.username,
+                status: 'unpaid'
+            };
+        
+            await db.collection('indirectIncomeCollection').insertOne(levelPaymentData);
+        }
         res.json({ success: true, payment: result });
     } catch (error) {
         console.error(error);

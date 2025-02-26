@@ -36,7 +36,8 @@ router.post('/create-user', async (req, res) => {
           bankDetails,
           downline,
           email,
-          pin
+          pin,
+          emiAmount
       } = req.body;
       let username;
       let existingUser;
@@ -94,6 +95,7 @@ router.post('/create-user', async (req, res) => {
           panNumber,
           sponsorId,
           createdAt,
+          EmiAmount:emiAmount,
           phoneNumber,
           bankDetails,
           downline,
@@ -101,7 +103,26 @@ router.post('/create-user', async (req, res) => {
       };
       // Insert the new user into the collection
       const result = await db.collection('users').insertOne(newUser);
-      await updateDownlineLevels(db, sponsorId, username, 1, result.insertedId);
+      // await updateDownlineLevels(db, sponsorId, username, 1, result.insertedId);
+      const collection = db.collection('newVkpayment');
+      const paymentRecord = await collection.findOne({ EmiAmount: emiAmount });
+
+      if (!paymentRecord) {
+        return res.status(400).json({ error: "Invalid EMI Amount selected." });
+    }
+
+      let levelPaymentData = {
+        username: sponsorId,
+        date: now.toLocaleString('en-US', options),
+        level: 1,
+        amount: paymentRecord.sposerAmount, 
+        whos: result.username,
+        status: 'unpaid'
+    };
+
+    await db.collection('indirectIncomeCollection').insertOne(levelPaymentData);
+
+
       const options = {
         timeZone: 'Asia/Kolkata',
         hour12: false,
@@ -147,6 +168,9 @@ router.post('/create-user', async (req, res) => {
                 { $push: { downline: { username, level, userId } } }
             );
             const paymentAmounts = [500, 50, 40, 30, 20, 10];
+
+            const payments = await collection.find({}).toArray();
+
             let levelPaymentData = {
                 username: sponsorId,
                 date: now.toLocaleString('en-US', options),
@@ -175,26 +199,29 @@ router.post('/create-user', async (req, res) => {
         }
     }
 
-
-router.get('/get-all-users', async (req, res) => {
-  try {
-      const db = await connectToMongoDB();
-      const page = parseInt(req.query.page) || 1;
-      const pageSize = 50;
-      const searchTerm = req.query.search || '';
-
-      const query = searchTerm
-        ? {
-            $or: [
-              { username: { $regex: searchTerm, $options: 'i' } },
-              { name: { $regex: searchTerm, $options: 'i' } },
-              { phoneNumber: { $regex: searchTerm, $options: 'i' } }
-            ]
-          }
-        : {};
-
-      const users = await db.collection('users').find(query, {
-          projection: {
+    router.get('/get-all-users', async (req, res) => {
+      try {
+        const db = await connectToMongoDB();
+        const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+        const pageSize =30; // Number of items per page
+        const searchTerm = req.query.search || ''; // Search term for filtering
+    
+        // Build the query for search
+        const query = searchTerm
+          ? {
+              $or: [
+                { username: { $regex: searchTerm, $options: 'i' } }, // Case-insensitive search
+                { name: { $regex: searchTerm, $options: 'i' } },
+                { phoneNumber: { $regex: searchTerm, $options: 'i' } },
+              ],
+            }
+          : {};
+    
+        // Fetch users with pagination and projection
+        const users = await db
+          .collection('users')
+          .find(query, {
+            projection: {
               username: 1,
               name: 1,
               phoneNumber: 1,
@@ -203,18 +230,39 @@ router.get('/get-all-users', async (req, res) => {
               password: 1,
               sponsorId: 1,
               serialNumber: 1,
-              _id: 0
-          }
-      }).skip((page - 1) * pageSize).limit(pageSize).toArray();
-      
-      const totalItems = await db.collection('users').countDocuments(query);
+              _id: 0,
+            },
+          })
+          .sort({ serialNumber: -1 }) // Sort by createdAt in descending order
+          .skip((page - 1) * pageSize) // Skip documents for pagination
+          .limit(pageSize) // Limit the number of documents returned
+          .toArray();
+    
+        // Get the total number of documents matching the query
+        const totalItems = await db.collection('users').countDocuments(query);
 
-      res.json({ success: true, users, totalItems, totalPages: Math.ceil(totalItems / pageSize) });
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, error: 'Internal Server Error' });
-  }
-});
+        console.log(totalItems);
+        console.log(pageSize);
+        
+        
+    
+        // Calculate total pages
+        const totalPages = Math.ceil(totalItems / pageSize);
+    
+        // Send response
+        res.json({
+          success: true,
+          users,
+          totalItems,
+          totalPages,
+          currentPage: page,
+        });
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+      }
+    });
+    
 
     router.get('/countUsers', async (req, res) => {
         try {

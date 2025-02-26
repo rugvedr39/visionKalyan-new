@@ -4,13 +4,10 @@ const { ObjectId } = require('mongodb');
 const { connectToMongoDB } = require('./db');
 const collectionName = 'lands';
 
-
-
 // Create
 router.post('/lands', async (req, res) => {
   try {
     const db = await connectToMongoDB();
-
     const result = await db.collection(collectionName).insertOne(req.body);
     res.status(201).json(result);
   } catch (error) {
@@ -23,7 +20,6 @@ router.post('/lands', async (req, res) => {
 router.get('/lands', async (req, res) => {
   try {
     const db = await connectToMongoDB();
-    
     const lands = await db.collection(collectionName).find().toArray();
     res.json(lands);
   } catch (error) {
@@ -35,8 +31,7 @@ router.get('/lands', async (req, res) => {
 // Update
 router.put('/lands/:id', async (req, res) => {
   try {
-    const db =await connectToMongoDB();
-    
+    const db = await connectToMongoDB();
     const result = await db.collection(collectionName).updateOne(
       { _id: ObjectId(req.params.id) },
       { $set: req.body }
@@ -53,10 +48,11 @@ router.put('/lands/:id', async (req, res) => {
   }
 });
 
+// Delete
 router.delete('/lands/:id', async (req, res) => {
   try {
     const db = await connectToMongoDB();
-    const result = await db.collection(collectionName).deleteOne({ _id: ObjectId(req.params.id) });
+    const result = await db.collection(collectionName).deleteOne({ _id: new ObjectId(req.params.id) });
 
     if (result.deletedCount === 0) {
       res.status(404).json({ error: 'Land not found' });
@@ -68,4 +64,5 @@ router.delete('/lands/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 module.exports = router;
