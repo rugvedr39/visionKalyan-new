@@ -16,7 +16,7 @@ const extraemi = require('./extraEMI');
 require('dotenv').config();
 var morgan = require('morgan')
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 var admin = require("firebase-admin");
 const { sendFileMessage } = require('./whatsapp');
 app.use(morgan('tiny'));
