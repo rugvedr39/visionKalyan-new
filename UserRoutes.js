@@ -109,7 +109,20 @@ router.post('/create-user', async (req, res) => {
       if (!paymentRecord) {
         return res.status(400).json({ error: "Invalid EMI Amount selected." });
     }
+
     const now = new Date();
+    const options = {
+      timeZone: 'Asia/Kolkata',
+      hour12: false,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+  };
+
+  
       let levelPaymentData = {
         username: sponsorId,
         date: now.toLocaleString('en-US', options),
@@ -122,16 +135,7 @@ router.post('/create-user', async (req, res) => {
     await db.collection('indirectIncomeCollection').insertOne(levelPaymentData);
 
 
-      const options = {
-        timeZone: 'Asia/Kolkata',
-        hour12: false,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-    };
+
 
     const formattedDate = now.toLocaleString('en-US', options).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2,');
     await db.collection('payments').insertOne({ username: username, date: formattedDate });
