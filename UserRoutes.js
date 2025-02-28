@@ -105,8 +105,7 @@ router.post('/create-user', async (req, res) => {
       const result = await db.collection('users').insertOne(newUser);
       // await updateDownlineLevels(db, sponsorId, username, 1, result.insertedId);
       const collection = db.collection('newVkpayment');
-      const paymentRecord = await collection.findOne({ EmiAmount: emiAmount });
-
+      const paymentRecord = await collection.findOne({ EmiAmount: Number(emiAmount) });
       if (!paymentRecord) {
         return res.status(400).json({ error: "Invalid EMI Amount selected." });
     }
