@@ -109,7 +109,7 @@ router.post('/create-user', async (req, res) => {
       if (!paymentRecord) {
         return res.status(400).json({ error: "Invalid EMI Amount selected." });
     }
-
+    const now = new Date();
       let levelPaymentData = {
         username: sponsorId,
         date: now.toLocaleString('en-US', options),
@@ -132,7 +132,7 @@ router.post('/create-user', async (req, res) => {
         minute: '2-digit',
         second: '2-digit',
     };
-    const now = new Date();
+
     const formattedDate = now.toLocaleString('en-US', options).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2,');
     await db.collection('payments').insertOne({ username: username, date: formattedDate });
       const message = createEMIMessage(newUser.name, newUser.username)
