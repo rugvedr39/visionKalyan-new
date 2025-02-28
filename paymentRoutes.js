@@ -33,13 +33,17 @@ router.post('/add', async (req, res) => {
         // Make indirect payments
         // await processLevelPayments(sponsorId, username,UsersCollection,indirectIncomeCollection);
 
-        const paymentRecord = await collection.findOne({ EmiAmount: existingUser.EmiAmount });
+       
+
+      if (existingUser.serialNumber>247) {
+
+        const paymentRecord = await collection.findOne({ EmiAmount:  Number(existingUser.EmiAmount) });
 
         if (!paymentRecord) {
           return res.status(400).json({ error: "Invalid EMI Amount selected." });
       }
 
-      const countPayment = await db.collection('indirectIncomeCollection').countDocuments({ username,level: 1,amount:existingUser.EmiAmount });
+        const countPayment = await db.collection('indirectIncomeCollection').countDocuments({ username,level: 1,amount:existingUser.EmiAmount });
 
         if (countPayment <= paymentRecord.times) {
             let levelPaymentData = {
@@ -53,6 +57,12 @@ router.post('/add', async (req, res) => {
         
             await db.collection('indirectIncomeCollection').insertOne(levelPaymentData);
         }
+      }else{
+        await processLevelPayments(sponsorId, username,UsersCollection,indirectIncomeCollection);
+      }
+
+
+
         res.json({ success: true, payment: result });
     } catch (error) {
         console.error(error);
@@ -121,6 +131,10 @@ router.get('/income/:username', async (req, res) => {
 
     await indirectIncomeCollection.insertOne(levelPaymentData);
 };
+
+
+
+
 const processLevelPayments = async (sponsorId, username,UsersCollection,indirectIncomeCollection) => {
     for (let level = 1; level <= 6; level++) {
         if (sponsorId && level <= 5) {
