@@ -103,7 +103,7 @@ router.post('/create-user', async (req, res) => {
       };
       // Insert the new user into the collection
       const result = await db.collection('users').insertOne(newUser);
-      // await updateDownlineLevels(db, sponsorId, username, 1, result.insertedId);
+      await updateDownlineLevels(db, sponsorId, username, 1, result.insertedId);
       const collection = db.collection('newVkpayment');
       const paymentRecord = await collection.findOne({ EmiAmount: Number(emiAmount) });
       if (!paymentRecord) {
@@ -182,7 +182,7 @@ router.post('/create-user', async (req, res) => {
                 whos: username,
                 status: 'unpaid'
             };
-            await db.collection('indirectIncomeCollection').insertOne(levelPaymentData);
+            // await db.collection('indirectIncomeCollection').insertOne(levelPaymentData);
             const sponsor = await db.collection('users').findOne({ username: sponsorId });
             const nextSponsorId = sponsor ? sponsor.sponsorId : null;
             if (nextSponsorId) {
